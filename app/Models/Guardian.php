@@ -23,8 +23,8 @@ class Guardian extends Model
     ];
 
     protected $casts = [
-        'has_custody'              => 'boolean',
-        'access_token_expires_at'  => 'datetime',
+        'has_custody'             => 'boolean',
+        'access_token_expires_at' => 'datetime',
     ];
 
     public function campers(): BelongsToMany

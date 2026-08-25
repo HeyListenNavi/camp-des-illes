@@ -22,9 +22,9 @@ class Payment extends Model
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
+        'amount'   => 'decimal:2',
         'due_date' => 'date',
-        'paid_at' => 'datetime',
+        'paid_at'  => 'datetime',
     ];
 
     public function payable(): MorphTo

@@ -20,11 +20,11 @@ class CamperConsent extends Model
     ];
 
     protected $casts = [
-        'photo_permission' => 'boolean',
-        'travel_permission' => 'boolean',
+        'photo_permission'   => 'boolean',
+        'travel_permission'  => 'boolean',
         'contact_permission' => 'boolean',
         'medical_permission' => 'boolean',
-        'signed_at' => 'datetime',
+        'signed_at'          => 'datetime',
     ];
 
     public function registration(): BelongsTo
