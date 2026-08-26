@@ -1,289 +1,292 @@
-<div class="max-w-4xl mx-auto">
-    @if($submitted)
-        <div class="bg-slate-900/90 border border-emerald-500/30 rounded-2xl p-8 backdrop-blur-xl shadow-2xl text-center space-y-6 animate-fadeIn">
-            <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<div class="max-w-5xl mx-auto px-4 py-8">
+    @if ($submitted)
+        <!-- Pantalla de Éxito / Confirmación -->
+        <div class="bg-white shadow-xl rounded-2xl p-8 border border-green-100 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
             </div>
-            <div class="space-y-2">
-                <h2 class="text-3xl font-heading font-bold text-white">¡Registros Recibidos con Éxito!</h2>
-                <p class="text-slate-300 max-w-lg mx-auto">
-                    Se han procesado correctamente las inscripciones para la temporada <span class="text-emerald-400 font-semibold">{{ $session_year }}</span>.
-                </p>
-            </div>
-            
-            <div class="space-y-3 max-w-lg mx-auto text-left">
-                <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold block text-center">Códigos Únicos de Registro</span>
-                @foreach($registered_tokens as $item)
-                    <div class="bg-slate-950/90 p-4 rounded-xl border border-slate-800 flex items-center justify-between gap-4">
-                        <div>
-                            <span class="text-sm font-bold text-white block">{{ $item['name'] }}</span>
-                            <code class="text-emerald-400 font-mono text-xs break-all block">{{ $item['token'] }}</code>
-                        </div>
-                        <a href="{{ route('public.medical.update', ['token' => $item['token']]) }}" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-semibold border border-emerald-500/30 transition-all shrink-0">
-                            Ficha Médica
-                        </a>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">¡Inscripción Completada con Éxito!</h2>
+            <p class="text-gray-600 mb-6">Se han registrado los siguientes acampantes para el evento <strong>{{ $activeEvent->name ?? '' }}</strong>:</p>
+
+            <div class="max-w-md mx-auto space-y-3 mb-8">
+                @foreach ($registered_tokens as $reg)
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <span class="font-semibold text-gray-800">{{ $reg['name'] }}</span>
+                        <span class="font-mono text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-md">Token: {{ $reg['token'] }}</span>
                     </div>
                 @endforeach
             </div>
 
-            <div class="pt-4">
-                <button wire:click="$set('submitted', false)" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition-all">
-                    Registrar Más Acampantes
-                </button>
+            <button type="button" onclick="window.location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg transition">
+                Registrar otra familia
+            </button>
+        </div>
+    @elseif (!$activeEvent)
+        <!-- Sin Evento Activo -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-xl">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-lg font-medium text-yellow-800">Inscripciones No Disponibles</h3>
+                    <p class="text-sm text-yellow-700 mt-1">Actualmente no hay ningún evento de campamento activo configurado en el sistema.</p>
+                </div>
             </div>
         </div>
     @else
+        <!-- Formulario Principal -->
         <form wire:submit.prevent="submit" class="space-y-8">
-            <!-- Header section -->
-            <div class="bg-gradient-to-r from-emerald-900/40 via-slate-900/60 to-slate-900/80 border border-emerald-500/20 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-xl">
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="px-3 py-1 text-xs font-bold tracking-wider uppercase rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Formulario Público</span>
-                    <span class="text-slate-400 text-sm">Temporada {{ $session_year }}</span>
+            <!-- Header Evento -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl p-6 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <span class="text-xs uppercase tracking-widest bg-blue-500/30 px-3 py-1 rounded-full border border-blue-400/30">Evento Activo</span>
+                    <h1 class="text-2xl md:text-3xl font-extrabold mt-2">{{ $activeEvent->name }}</h1>
                 </div>
-                <h1 class="text-3xl sm:text-4xl font-heading font-extrabold text-white">Inscripción de Acampantes</h1>
-                <p class="text-slate-300 mt-2">Ingrese los datos del tutor responsable y agregue a uno o varios acampantes en una misma solicitud.</p>
-                <div class="mt-4 flex items-center gap-3">
-                    <label class="text-sm font-medium text-slate-300 whitespace-nowrap">Año de Sesión *</label>
-                    <input type="text" wire:model.defer="session_year" class="w-32 bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
-                    @error('session_year') <span class="text-xs text-rose-400">{{ $message }}</span> @enderror
+                <div class="mt-4 md:mt-0 bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
+                    <span class="text-sm block text-blue-100">Año lectivo</span>
+                    <span class="text-xl font-bold">{{ $activeEvent->year }}</span>
                 </div>
             </div>
 
-            <!-- Section 1: Guardians / Tutores (dinámico) -->
-            <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">1</div>
-                        <h2 class="text-xl font-heading font-bold text-white">Tutores / Responsables Legales ({{ count($guardians) }})</h2>
+            @if (session()->has('error'))
+                <div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <!-- SECCIÓN TUTORES -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-6 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">1. Datos del Tutor / Apoderado</h2>
+                        <p class="text-sm text-gray-500">Agrega al menos un tutor legal o contacto principal</p>
                     </div>
-                    <button type="button" wire:click="addGuardian" class="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-sm font-semibold border border-emerald-500/30 transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <button type="button" wire:click="addGuardian" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Agregar Tutor
                     </button>
                 </div>
 
-                @foreach($guardians as $gIndex => $guardian)
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-lg relative">
-                        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                            <span class="px-3 py-1 text-xs font-bold tracking-wider uppercase rounded-lg bg-slate-800 text-emerald-400">
-                                Tutor #{{ $gIndex + 1 }}
-                            </span>
-                            @if(count($guardians) > 1)
-                                <button type="button" wire:click="removeGuardian({{ $gIndex }})" class="text-slate-400 hover:text-rose-400 text-xs font-medium transition-colors flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    Quitar Tutor
-                                </button>
-                            @endif
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Nombre del Tutor *</label>
-                                <input type="text" wire:model.defer="guardians.{{ $gIndex }}.first_name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="Ej. Juan">
-                                @error("guardians.{$gIndex}.first_name") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
+                <div class="p-6 space-y-6">
+                    @foreach ($guardians as $index => $guardian)
+                        <div class="p-5 rounded-xl border border-gray-200 bg-white relative {{ $loop->first ? '' : 'mt-4' }}">
+                            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                                <span class="text-sm font-bold text-gray-700 uppercase tracking-wider">Tutor #{{ $index + 1 }}</span>
+                                @if (count($guardians) > 1)
+                                    <button type="button" wire:click="removeGuardian({{ $index }})" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                                        Eliminar
+                                    </button>
+                                @endif
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Apellido del Tutor *</label>
-                                <input type="text" wire:model.defer="guardians.{{ $gIndex }}.last_name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="Ej. Pérez">
-                                @error("guardians.{$gIndex}.last_name") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Teléfono de Contacto *</label>
-                                <input type="text" wire:model.defer="guardians.{{ $gIndex }}.phone" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="Ej. +1 555 123 4567">
-                                @error("guardians.{$gIndex}.phone") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Correo Electrónico</label>
-                                <input type="email" wire:model.defer="guardians.{{ $gIndex }}.email" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="ejemplo@correo.com">
-                                @error("guardians.{$gIndex}.email") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Parentesco / Relación *</label>
-                                <select wire:model.defer="guardians.{{ $gIndex }}.relationship_type" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
-                                    <option value="father">Padre</option>
-                                    <option value="mother">Madre</option>
-                                    <option value="stepfather">Padrastro</option>
-                                    <option value="stepmother">Madrastra</option>
-                                    <option value="legal_guardian">Tutor Legal</option>
-                                    <option value="emergency_contact">Contacto de Emergencia</option>
-                                    <option value="other">Otro</option>
-                                </select>
-                                @error("guardians.{$gIndex}.relationship_type") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Dirección del Tutor</label>
-                                <textarea wire:model.defer="guardians.{{ $gIndex }}.address" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="Calle, número, ciudad..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Checkboxes del tutor -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                            <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/40 transition-colors">
-                                <input type="checkbox" wire:model.defer="guardians.{{ $gIndex }}.has_custody" class="rounded bg-slate-900 border-slate-700 text-emerald-500 w-4 h-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <span class="text-sm font-semibold text-white block">Tiene la Custodia</span>
-                                    <span class="text-xs text-slate-400">Custodia legal del menor</span>
+                                    <label class="block text-sm font-medium text-gray-700">Nombre *</label>
+                                    <input type="text" wire:model.defer="guardians.{{ $index }}.first_name" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("guardians.{$index}.first_name") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                                 </div>
-                            </label>
 
-                            <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/40 transition-colors">
-                                <input type="checkbox" wire:model.defer="guardians.{{ $gIndex }}.is_primary_guardian" class="rounded bg-slate-900 border-slate-700 text-emerald-500 w-4 h-4">
                                 <div>
-                                    <span class="text-sm font-semibold text-white block">Tutor Primario</span>
-                                    <span class="text-xs text-slate-400">Contacto principal</span>
+                                    <label class="block text-sm font-medium text-gray-700">Apellido *</label>
+                                    <input type="text" wire:model.defer="guardians.{{ $index }}.last_name" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("guardians.{$index}.last_name") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                                 </div>
-                            </label>
 
-                            <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500/40 transition-colors">
-                                <input type="checkbox" wire:model.defer="guardians.{{ $gIndex }}.is_emergency_contact" class="rounded bg-slate-900 border-slate-700 text-emerald-500 w-4 h-4">
                                 <div>
-                                    <span class="text-sm font-semibold text-white block">Contacto de Emergencia</span>
-                                    <span class="text-xs text-slate-400">Llamar en emergencias</span>
+                                    <label class="block text-sm font-medium text-gray-700">Teléfono *</label>
+                                    <input type="text" wire:model.defer="guardians.{{ $index }}.phone" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("guardians.{$index}.phone") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                                 </div>
-                            </label>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                                    <input type="email" wire:model.defer="guardians.{{ $index }}.email" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("guardians.{$index}.email") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Parentesco *</label>
+                                    <select wire:model.defer="guardians.{{ $index }}.relationship_type" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="father">Padre</option>
+                                        <option value="mother">Madre</option>
+                                        <option value="stepfather">Padrastro</option>
+                                        <option value="stepmother">Madrastra</option>
+                                        <option value="legal_guardian">Tutor Legal</option>
+                                        <option value="emergency_contact">Contacto Emergencia</option>
+                                        <option value="other">Otro</option>
+                                    </select>
+                                    @error("guardians.{$index}.relationship_type") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Dirección</label>
+                                    <input type="text" wire:model.defer="guardians.{{ $index }}.address" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                            </div>
+
+                            <div class="mt-4 flex flex-wrap gap-6 pt-3 border-t border-gray-100">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" wire:model.defer="guardians.{{ $index }}.is_primary_guardian" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-600">Tutor Principal</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" wire:model.defer="guardians.{{ $index }}.is_emergency_contact" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-600">Contacto de Emergencia</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" wire:model.defer="guardians.{{ $index }}.has_custody" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-600">Tiene Custodia Legal</span>
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                @endforeach
-
-                <div class="flex justify-center">
-                    <button type="button" wire:click="addGuardian" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition-all flex items-center gap-2 border border-slate-700">
-                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        + Agregar Otro Tutor
-                    </button>
+                    @endforeach
                 </div>
             </div>
 
-
-            <!-- Section 2: Dynamic Campers List -->
-            <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">2</div>
-                        <h2 class="text-xl font-heading font-bold text-white">Acampantes a Inscribir ({{ count($campers) }})</h2>
+            <!-- SECCIÓN ACAMPANTES -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-6 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">2. Datos de los Acampantes</h2>
+                        <p class="text-sm text-gray-500">Registra uno o varios acampantes en la misma inscripción</p>
                     </div>
-                    <button type="button" wire:click="addCamper" class="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-sm font-semibold border border-emerald-500/30 transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Agregar Otro Acampante
+                    <button type="button" wire:click="addCamper" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Agregar Acampante
                     </button>
                 </div>
 
-                @foreach($campers as $index => $camper)
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl relative">
-                        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                            <span class="px-3 py-1 text-xs font-bold tracking-wider uppercase rounded-lg bg-slate-800 text-emerald-400">
-                                Acampante #{{ $index + 1 }}
-                            </span>
-                            @if(count($campers) > 1)
-                                <button type="button" wire:click="removeCamper({{ $index }})" class="text-slate-400 hover:text-rose-400 text-xs font-medium transition-colors flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    Quitar Acampante
-                                </button>
-                            @endif
+                <div class="p-6 space-y-8">
+                    @foreach ($campers as $index => $camper)
+                        <div class="p-6 rounded-xl border border-gray-200 bg-gray-50/50 relative">
+                            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
+                                <span class="text-sm font-bold text-blue-700 uppercase tracking-wider">Acampante #{{ $index + 1 }}</span>
+                                @if (count($campers) > 1)
+                                    <button type="button" wire:click="removeCamper({{ $index }})" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                                        Eliminar
+                                    </button>
+                                @endif
+                            </div>
+
+                            <!-- Información Personal -->
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Nombre *</label>
+                                    <input type="text" wire:model.defer="campers.{{ $index }}.first_name" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("campers.{$index}.first_name") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Apellido *</label>
+                                    <input type="text" wire:model.defer="campers.{{ $index }}.last_name" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("campers.{$index}.last_name") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Género *</label>
+                                    <select wire:model.defer="campers.{{ $index }}.gender" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="male">Masculino</option>
+                                        <option value="female">Femenino</option>
+                                        <option value="other">Otro</option>
+                                    </select>
+                                    @error("campers.{$index}.gender") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Fecha Nacimiento *</label>
+                                    <input type="date" wire:model.defer="campers.{{ $index }}.date_of_birth" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("campers.{$index}.date_of_birth") <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Nº Seguro / Ficha Médica</label>
+                                    <input type="text" wire:model.defer="campers.{{ $index }}.health_card_number" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+
+                                <div class="md:col-span-3">
+                                    <label class="block text-sm font-medium text-gray-700">Dirección Residencial</label>
+                                    <input type="text" wire:model.defer="campers.{{ $index }}.address" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                            </div>
+
+                            <!-- Información Médica -->
+                            <div class="bg-white p-4 rounded-xl border border-gray-200 mb-6 space-y-4">
+                                <h3 class="text-md font-semibold text-gray-800 border-b border-gray-100 pb-2">Ficha Médica y Cuidados</h3>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Alergias</label>
+                                        <textarea rows="2" wire:model.defer="campers.{{ $index }}.allergies" placeholder="Medicamentos, alimentos, picaduras..." class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Medicamentos de Uso Diario</label>
+                                        <textarea rows="2" wire:model.defer="campers.{{ $index }}.medications" placeholder="Nombre, dosis y horario..." class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Restricciones Alimentarias</label>
+                                        <textarea rows="2" wire:model.defer="campers.{{ $index }}.dietary_restrictions" placeholder="Vegetariano, celiaco, intolerancias..." class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Alertas Críticas / Condiciones Médicas</label>
+                                        <textarea rows="2" wire:model.defer="campers.{{ $index }}.critical_alerts" placeholder="Asma, diabetes, epilepsia, etc..." class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700">Detalles de Custodia Legal (si aplica)</label>
+                                        <input type="text" wire:model.defer="campers.{{ $index }}.custody_details" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Permisos / Autorizaciones -->
+                            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3">
+                                <h3 class="text-md font-semibold text-blue-900 mb-2">Autorizaciones y Consentimiento</h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" wire:model.defer="campers.{{ $index }}.photo_permission" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">Autorizo uso de imágenes / fotografías</span>
+                                    </label>
+
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" wire:model.defer="campers.{{ $index }}.travel_permission" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">Autorizo traslado/traslado de excursión</span>
+                                    </label>
+
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" wire:model.defer="campers.{{ $index }}.contact_permission" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">Autorizo contacto directo de la organización</span>
+                                    </label>
+
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" wire:model.defer="campers.{{ $index }}.medical_permission" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-900 font-semibold">Autorizo atención médica de emergencia *</span>
+                                    </label>
+                                </div>
+                                @error("campers.{$index}.medical_permission")
+                                    <span class="text-xs text-red-600 block mt-1 font-semibold">{{ $message }}</span>
+                                @enderror
+                            </div>
                         </div>
-
-                        <!-- Personal Data -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Nombre del Acampante *</label>
-                                <input type="text" wire:model.defer="campers.{{ $index }}.first_name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500" placeholder="Ej. Mateo">
-                                @error("campers.{$index}.first_name") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Apellido del Acampante *</label>
-                                <input type="text" wire:model.defer="campers.{{ $index }}.last_name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500" placeholder="Ej. Pérez">
-                                @error("campers.{$index}.last_name") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Género *</label>
-                                <select wire:model.defer="campers.{{ $index }}.gender" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
-                                    <option value="male">Masculino</option>
-                                    <option value="female">Femenino</option>
-                                    <option value="other">Otro</option>
-                                </select>
-                                @error("campers.{$index}.gender") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Fecha de Nacimiento *</label>
-                                <input type="date" wire:model.defer="campers.{{ $index }}.date_of_birth" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
-                                @error("campers.{$index}.date_of_birth") <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Nº Seguro / Cartilla Médica</label>
-                                <input type="text" wire:model.defer="campers.{{ $index }}.health_card_number" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500" placeholder="Ej. NSS-987654321">
-                            </div>
-                        </div>
-
-                        <!-- Medical info -->
-                        <div class="pt-4 border-t border-slate-800 space-y-4">
-                            <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">Ficha Médica</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-400 mb-1">Alergias Conocidas</label>
-                                    <textarea wire:model.defer="campers.{{ $index }}.allergies" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" placeholder="Medicamentos, alimentos..."></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-400 mb-1">Medicamentos Actuales</label>
-                                    <textarea wire:model.defer="campers.{{ $index }}.medications" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" placeholder="Dosis y horario..."></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-400 mb-1">Restricciones Dietéticas</label>
-                                    <textarea wire:model.defer="campers.{{ $index }}.dietary_restrictions" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" placeholder="Vegetariano, celíaco..."></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-400 mb-1">Alertas Críticas</label>
-                                    <textarea wire:model.defer="campers.{{ $index }}.critical_alerts" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" placeholder="Inhalador, sonambulismo..."></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Consents -->
-                        <div class="pt-4 border-t border-slate-800 space-y-3">
-                            <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">Autorizaciones</h3>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer">
-                                    <input type="checkbox" wire:model.defer="campers.{{ $index }}.photo_permission" class="rounded bg-slate-900 border-slate-700 text-emerald-500">
-                                    <span class="text-slate-300">Permiso de Fotografía</span>
-                                </label>
-
-                                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer">
-                                    <input type="checkbox" wire:model.defer="campers.{{ $index }}.travel_permission" class="rounded bg-slate-900 border-slate-700 text-emerald-500">
-                                    <span class="text-slate-300">Permiso de Traslados</span>
-                                </label>
-                            </div>
-
-                            <label class="flex items-start gap-3 p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/40 cursor-pointer">
-                                <input type="checkbox" wire:model.defer="campers.{{ $index }}.medical_permission" class="mt-0.5 w-4 h-4 rounded bg-slate-900 border-emerald-500 text-emerald-500">
-                                <div>
-                                    <span class="font-bold text-emerald-400 text-xs">Autorización de Atención Médica de Emergencia *</span>
-                                    @error("campers.{$index}.medical_permission") <span class="text-xs text-rose-400 mt-1 block font-semibold">{{ $message }}</span> @enderror
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                @endforeach
-
-                <div class="pt-2 flex justify-center">
-                    <button type="button" wire:click="addCamper" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition-all flex items-center gap-2 border border-slate-700">
-                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        + Agregar Otro Acampante
-                    </button>
+                    @endforeach
                 </div>
             </div>
 
-            <!-- Submit Button -->
-            <div class="pt-4 flex justify-end">
-                <button type="submit" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-lg shadow-xl shadow-emerald-500/25 transition-all transform hover:-translate-y-0.5">
-                    Completar Inscripciones ({{ count($campers) }})
+            <!-- Botón Guardar -->
+            <div class="flex justify-end pt-4">
+                <button type="submit" wire:loading.attr="disabled" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition duration-150 inline-flex items-center">
+                    <span wire:loading.remove>Completar Inscripción</span>
+                    <span wire:loading class="inline-flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Procesando...
+                    </span>
                 </button>
             </div>
         </form>

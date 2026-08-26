@@ -30,6 +30,12 @@ class Camper extends Model
         'access_token_expires_at' => 'datetime',
     ];
 
+    public function registrationSessions(): BelongsToMany
+    {
+        return $this->belongsToMany(RegistrationSession::class, 'camper_registration_session')
+            ->withTimestamps();
+    }
+
     public function guardians(): BelongsToMany
     {
         return $this->belongsToMany(Guardian::class, 'camper_guardian')

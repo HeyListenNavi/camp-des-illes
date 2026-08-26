@@ -16,7 +16,7 @@ class CamperRegistration extends Model
     protected $fillable = [
         'token',
         'camper_id',
-        'session_year',
+        'registration_session_id',
         'status',
     ];
 
@@ -32,6 +32,11 @@ class CamperRegistration extends Model
     public function camper(): BelongsTo
     {
         return $this->belongsTo(Camper::class);
+    }
+
+    public function registrationSession(): BelongsTo
+    {
+        return $this->belongsTo(RegistrationSession::class);
     }
 
     public function consent(): HasOne

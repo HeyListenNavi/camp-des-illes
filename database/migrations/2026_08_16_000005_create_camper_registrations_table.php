@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('token')->unique();
             $table->foreignId('camper_id')->constrained('campers')->restrictOnDelete();
-            $table->string('session_year');
+            $table->foreignId('registration_session_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->timestamps();
 

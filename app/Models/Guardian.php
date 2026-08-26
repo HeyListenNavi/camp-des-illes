@@ -23,9 +23,15 @@ class Guardian extends Model
     ];
 
     protected $casts = [
-        'has_custody'             => 'boolean',
+        'has_custody' => 'boolean',
         'access_token_expires_at' => 'datetime',
     ];
+
+    public function registrationSessions(): BelongsToMany
+    {
+        return $this->belongsToMany(RegistrationSession::class, 'guardian_registration_session')
+            ->withTimestamps();
+    }
 
     public function campers(): BelongsToMany
     {
