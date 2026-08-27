@@ -4,6 +4,8 @@ namespace App\Filament\Resources\CamperRegistrations\Schemas;
 
 use App\Enums\RegistrationStatus;
 use App\Filament\Forms\Components\QrCodeCard;
+use App\Filament\Resources\Campers\CamperResource;
+use App\Filament\Resources\CampEvents\CampEventResource;
 use App\Models\Camper;
 use App\Models\CamperRegistration;
 use Filament\Actions\Action;
@@ -36,6 +38,14 @@ class CamperRegistrationForm
                                     ->preload()
                                     ->native(false)
                                     ->required()
+                                    ->live()
+                                    ->suffixAction(
+                                        Action::make('openCamperRecord')
+                                            ->icon('heroicon-m-arrow-top-right-on-square')
+                                            ->tooltip('Open camper profile in new tab')
+                                            ->url(fn (?string $state): ?string => $state ? CamperResource::getUrl('edit', ['record' => $state]) : null, shouldOpenInNewTab: true)
+                                            ->visible(fn (?string $state): bool => ! empty($state))
+                                    )
                                     ->columnSpanFull(),
 
                                 Select::make('camp_event_id')
@@ -45,6 +55,14 @@ class CamperRegistrationForm
                                     ->preload()
                                     ->native(false)
                                     ->required()
+                                    ->live()
+                                    ->suffixAction(
+                                        Action::make('openCampEventRecord')
+                                            ->icon('heroicon-m-arrow-top-right-on-square')
+                                            ->tooltip('Open camp session details in new tab')
+                                            ->url(fn (?string $state): ?string => $state ? CampEventResource::getUrl('edit', ['record' => $state]) : null, shouldOpenInNewTab: true)
+                                            ->visible(fn (?string $state): bool => ! empty($state))
+                                    )
                                     ->columnSpanFull(),
                             ])
                             ->columnSpan(1),
@@ -59,7 +77,7 @@ class CamperRegistrationForm
                                     ->native(false)
                                     ->required()
                                     ->columnSpanFull(),
-                                    
+
                                 Grid::make(['default' => 1, 'sm' => 2])
                                     ->schema([
                                         QrCodeCard::make('public_link_qr')

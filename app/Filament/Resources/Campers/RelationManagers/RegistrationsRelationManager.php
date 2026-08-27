@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\Campers\RelationManagers;
 
 use App\Enums\RegistrationStatus;
+use App\Filament\Resources\CampEvents\CampEventResource;
 use App\Models\CamperRegistration;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -36,7 +38,15 @@ class RegistrationsRelationManager extends RelationManager
                     ->relationship('campEvent', 'name')
                     ->searchable()
                     ->native(false)
-                    ->required(),
+                    ->required()
+                    ->live()
+                    ->suffixAction(
+                        Action::make('openCampEvent')
+                            ->icon('heroicon-m-arrow-top-right-on-square')
+                            ->tooltip('Open camp event details in new tab')
+                            ->url(fn (?string $state): ?string => $state ? CampEventResource::getUrl('edit', ['record' => $state]) : null, shouldOpenInNewTab: true)
+                            ->visible(fn (?string $state): bool => ! empty($state))
+                    ),
 
                 Select::make('status')
                     ->label('Registration Status')
