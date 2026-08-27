@@ -30,6 +30,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
+            ->favicon(asset('images/camp-des-iles-logo.webp'))
+            ->brandName('Camp Des Îles')
             ->colors([
                 'primary' => [
                     50 => '#e2f4f7',
