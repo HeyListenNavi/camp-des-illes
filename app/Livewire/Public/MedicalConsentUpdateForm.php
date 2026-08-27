@@ -5,7 +5,7 @@ namespace App\Livewire\Public;
 use App\Models\CamperConsent;
 use App\Models\CamperMedical;
 use App\Models\CamperRegistration;
-use App\Models\FormSubmission;
+// use App\Models\FormSubmission;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -85,7 +85,8 @@ class MedicalConsentUpdateForm extends Component
                 ]
             );
 
-            // Auditoría
+            // Auditoría (Deshabilitado temporalmente hasta definir modelo FormSubmission)
+            /*
             FormSubmission::create([
                 'form_type' => 'medical',
                 'camper_registration_id' => $this->registration->id,
@@ -96,6 +97,7 @@ class MedicalConsentUpdateForm extends Component
                     'updated_consent' => true,
                 ],
             ]);
+            */
 
             $this->saved = true;
         });
