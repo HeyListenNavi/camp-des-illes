@@ -4,6 +4,8 @@ use App\Livewire\Public\CamperRegistrationForm;
 use App\Livewire\Public\GroupEventRegistrationForm;
 use App\Livewire\Public\MedicalConsentUpdateForm;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GroupApprovedController;
+use App\Http\Controllers\IndividualRegistrationController;
 
 Route::get('/', CamperRegistrationForm::class)->name('home');
 
@@ -18,5 +20,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 });
 
-require __DIR__.'/settings.php';
+// Rutas de la demo sin token
+Route::get('/group-approved', [GroupApprovedController::class, 'show'])->name('groups.approved');
+Route::get('/register-individual', [IndividualRegistrationController::class, 'create'])->name('groups.register-individual');
+Route::post('/register-individual', [IndividualRegistrationController::class, 'store'])->name('groups.store-individual');
 
+require __DIR__.'/settings.php';
