@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Livewire\Public;
 
@@ -11,6 +11,7 @@ use App\Models\GuestGroup;
 use App\Models\MealOption;
 use App\Models\RoomType;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -18,30 +19,49 @@ class GroupEventRegistrationForm extends Component
 {
     use WithFileUploads;
 
+    #[Url]
+    public ?string $token = null;
+
+    public bool $isEditing = false;
+
+    public ?int $group_event_id = null;
+
     // Guest Group fields
     public string $group_name = '';
+
     public ?string $organization_name = null;
+
     public string $primary_contact_name = '';
+
     public string $phone = '';
+
     public string $email = '';
+
     public ?string $address = null;
 
     // Group Event fields
     public string $start_date = '';
+
     public string $end_date = '';
+
     public int $expected_attendees = 20;
+
     public ?string $special_activities = null;
 
     // Document Uploads
     public $insurance_file = null;
+
     public $contract_file = null;
 
     // Quantities mapped by ID: [id => quantity]
     public array $selected_meals = [];
+
     public array $selected_rooms = [];
+
     public array $selected_activities = [];
 
     public bool $submitted = false;
+
     public ?string $event_token = null;
 
     protected function rules(): array
@@ -51,7 +71,7 @@ class GroupEventRegistrationForm extends Component
             'primary_contact_name' => 'required|string|max:255',
             'phone' => 'required|string|max:50',
             'email' => 'required|email|max:255',
-            'start_date' => 'required|date|after_or_equal:today',
+            'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'expected_attendees' => 'required|integer|min:1',
             'insurance_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
@@ -62,8 +82,56 @@ class GroupEventRegistrationForm extends Component
         ];
     }
 
-    public function mount(): void
+    public function mount(?string $token = null): void
     {
+        $targetToken = $token ?? $this->token ?? request()->query('token');
+
+        if (! empty($targetToken)) {
+            $event = GroupEvent::with(['group', 'serviceRequests', 'documents'])
+                ->where('token', $targetToken)
+                ->first();
+
+            if ($event) {
+                $this->token = $targetToken;
+                $this->event_token = $targetToken;
+                $this->isEditing = true;
+                $this->group_event_id = $event->id;
+
+                $group = $event->group;
+                if ($group) {
+                    $this->group_name = $group->name ?? '';
+                    $this->organization_name = $group->organization_name;
+                    $this->primary_contact_name = $group->primary_contact_name ?? '';
+                    $this->phone = $group->phone ?? '';
+                    $this->email = $group->email ?? '';
+                    $this->address = $group->address;
+                }
+
+                $this->start_date = $event->start_date ? $event->start_date->format('Y-m-d') : '';
+                $this->end_date = $event->end_date ? $event->end_date->format('Y-m-d') : '';
+                $this->expected_attendees = (int) ($event->expected_attendees ?? 20);
+                $this->special_activities = $event->operational_notes;
+
+                $this->selected_meals = [];
+                $this->selected_rooms = [];
+                $this->selected_activities = [];
+
+                foreach ($event->serviceRequests as $req) {
+                    if ($req->service_category === EventServiceCategory::Meal) {
+                        $this->selected_meals[$req->serviceable_id] = $req->quantity;
+                    } elseif ($req->service_category === EventServiceCategory::Lodging) {
+                        $this->selected_rooms[$req->serviceable_id] = $req->quantity;
+                    } elseif ($req->service_category === EventServiceCategory::Activity) {
+                        $this->selected_activities[$req->serviceable_id] = $req->quantity;
+                    }
+                }
+
+                return;
+            }
+
+            session()->flash('warning', 'Invalid or expired access link. You may submit a new inquiry below.');
+        }
+
         $this->selected_meals = [];
         $this->selected_rooms = [];
         $this->selected_activities = [];
@@ -74,7 +142,7 @@ class GroupEventRegistrationForm extends Component
         $this->validate();
 
         DB::transaction(function () {
-            // 1. Crear o encontrar GuestGroup
+            // 1. Find or create GuestGroup
             $group = GuestGroup::firstOrCreate(
                 ['email' => trim($this->email)],
                 [
@@ -86,21 +154,42 @@ class GroupEventRegistrationForm extends Component
                 ]
             );
 
-            // 2. Crear GroupEvent
-            $event = GroupEvent::create([
-                'guest_group_id' => $group->id,
-                'start_date' => $this->start_date,
-                'end_date' => $this->end_date,
-                'expected_attendees' => $this->expected_attendees,
-                'special_activities' => $this->special_activities,
-                'status' => GroupEventStatus::InquiryReceived,
+            $group->update([
+                'name' => trim($this->group_name),
+                'organization_name' => $this->organization_name ? trim($this->organization_name) : null,
+                'primary_contact_name' => trim($this->primary_contact_name),
+                'phone' => trim($this->phone),
+                'address' => $this->address,
             ]);
 
-            // 3. Documentos
+            // 2. Create or Update GroupEvent
+            if ($this->isEditing && $this->group_event_id) {
+                $event = GroupEvent::find($this->group_event_id);
+                if ($event) {
+                    $event->update([
+                        'guest_group_id' => $group->id,
+                        'start_date' => $this->start_date,
+                        'end_date' => $this->end_date,
+                        'expected_attendees' => $this->expected_attendees,
+                        'operational_notes' => $this->special_activities,
+                    ]);
+                }
+            } else {
+                $event = GroupEvent::create([
+                    'guest_group_id' => $group->id,
+                    'start_date' => $this->start_date,
+                    'end_date' => $this->end_date,
+                    'expected_attendees' => $this->expected_attendees,
+                    'operational_notes' => $this->special_activities,
+                    'status' => GroupEventStatus::InquiryReceived,
+                ]);
+            }
+
+            // 3. Documents
             if ($this->insurance_file) {
                 $path = $this->insurance_file->store('documents/insurance', 'public');
                 $event->documents()->create([
-                    'title' => 'Póliza de Seguro',
+                    'title' => 'Insurance Policy Certificate',
                     'file_path' => $path,
                     'file_type' => DocumentFileType::Other,
                     'uploaded_at' => now(),
@@ -110,26 +199,27 @@ class GroupEventRegistrationForm extends Component
             if ($this->contract_file) {
                 $path = $this->contract_file->store('documents/contracts', 'public');
                 $event->documents()->create([
-                    'title' => 'Contrato Firmado',
+                    'title' => 'Signed Group Contract',
                     'file_path' => $path,
                     'file_type' => DocumentFileType::Contract,
                     'uploaded_at' => now(),
                 ]);
             }
 
-            // 4. Guardar solicitudes de servicio directamente en BD
+            // 4. Save Service Requests
+            $event->serviceRequests()->delete();
             $servicesToInsert = [];
 
             // Meals
             $mealModels = MealOption::whereIn('id', array_keys($this->selected_meals))->get()->keyBy('id');
             foreach ($this->selected_meals as $id => $quantity) {
-                if ((int)$quantity > 0 && isset($mealModels[$id])) {
+                if ((int) $quantity > 0 && isset($mealModels[$id])) {
                     $servicesToInsert[] = [
                         'service_category' => EventServiceCategory::Meal,
                         'service_name' => $mealModels[$id]->name,
                         'serviceable_id' => $id,
                         'serviceable_type' => MealOption::class,
-                        'quantity' => (int)$quantity,
+                        'quantity' => (int) $quantity,
                     ];
                 }
             }
@@ -137,13 +227,13 @@ class GroupEventRegistrationForm extends Component
             // Rooms
             $roomModels = RoomType::whereIn('id', array_keys($this->selected_rooms))->get()->keyBy('id');
             foreach ($this->selected_rooms as $id => $quantity) {
-                if ((int)$quantity > 0 && isset($roomModels[$id])) {
+                if ((int) $quantity > 0 && isset($roomModels[$id])) {
                     $servicesToInsert[] = [
                         'service_category' => EventServiceCategory::Lodging,
                         'service_name' => $roomModels[$id]->name,
                         'serviceable_id' => $id,
                         'serviceable_type' => RoomType::class,
-                        'quantity' => (int)$quantity,
+                        'quantity' => (int) $quantity,
                     ];
                 }
             }
@@ -151,13 +241,13 @@ class GroupEventRegistrationForm extends Component
             // Activities
             $activityModels = Activity::whereIn('id', array_keys($this->selected_activities))->get()->keyBy('id');
             foreach ($this->selected_activities as $id => $quantity) {
-                if ((int)$quantity > 0 && isset($activityModels[$id])) {
+                if ((int) $quantity > 0 && isset($activityModels[$id])) {
                     $servicesToInsert[] = [
                         'service_category' => EventServiceCategory::Activity,
                         'service_name' => $activityModels[$id]->name,
                         'serviceable_id' => $id,
                         'serviceable_type' => Activity::class,
-                        'quantity' => (int)$quantity,
+                        'quantity' => (int) $quantity,
                     ];
                 }
             }
@@ -175,8 +265,8 @@ class GroupEventRegistrationForm extends Component
     {
         return view('livewire.public.group-event-registration-form', [
             'mealOptions' => MealOption::where('is_active', true)->get(),
-            'roomTypes'   => RoomType::where('is_active', true)->get(),
-            'activities'  => Activity::where('is_active', true)->get(),
-        ])->layout('layouts.public', ['title' => 'Solicitud de Grupo']);
+            'roomTypes' => RoomType::where('is_active', true)->get(),
+            'activities' => Activity::where('is_active', true)->get(),
+        ])->layout('layouts.public', ['title' => $this->isEditing ? 'Update Group Inquiry' : 'Solicitud de Grupo']);
     }
 }
