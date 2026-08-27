@@ -21,13 +21,13 @@ class CamperRegistrationResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
-    protected static ?string $navigationLabel = 'Inscripciones';
+    protected static ?string $navigationLabel = 'Camper Registrations';
 
-    protected static ?string $modelLabel = 'inscripción';
+    protected static ?string $modelLabel = 'camper registration';
 
-    protected static ?string $pluralModelLabel = 'inscripciones';
+    protected static ?string $pluralModelLabel = 'camper registrations';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Campamentos';
+    protected static UnitEnum|string|null $navigationGroup = 'Camp Operations';
 
     protected static ?int $navigationSort = 2;
 
@@ -44,7 +44,7 @@ class CamperRegistrationResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Los agregaremos después.
+            //
         ];
     }
 
