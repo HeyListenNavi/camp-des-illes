@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Campers;
 use App\Filament\Resources\Campers\Pages\CreateCamper;
 use App\Filament\Resources\Campers\Pages\EditCamper;
 use App\Filament\Resources\Campers\Pages\ListCampers;
-use App\Filament\Resources\Campers\Pages\ViewCamper;
 use App\Filament\Resources\Campers\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\Campers\RelationManagers\GuardiansRelationManager;
 use App\Filament\Resources\Campers\RelationManagers\RegistrationsRelationManager;
@@ -26,13 +25,13 @@ class CamperResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static ?string $navigationLabel = 'Acampantes';
+    protected static ?string $navigationLabel = 'Campers';
 
-    protected static ?string $modelLabel = 'acampante';
+    protected static ?string $modelLabel = 'camper';
 
-    protected static ?string $pluralModelLabel = 'acampantes';
+    protected static ?string $pluralModelLabel = 'campers';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Personas';
+    protected static UnitEnum|string|null $navigationGroup = 'People & Directory';
 
     protected static ?int $navigationSort = 1;
 

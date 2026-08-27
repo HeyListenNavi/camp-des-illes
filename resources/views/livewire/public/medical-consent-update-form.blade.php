@@ -1,86 +1,106 @@
-<div class="max-w-4xl mx-auto space-y-8">
-    <!-- Header section -->
-    <div class="bg-gradient-to-r from-blue-900/40 via-slate-900/60 to-slate-900/80 border border-blue-500/20 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-xl">
-        <div class="flex items-center justify-between">
-            <span class="px-3 py-1 text-xs font-bold tracking-wider uppercase rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">Acceso Seguro por Token</span>
-            <span class="text-xs text-slate-400 font-mono">{{ $registration->token }}</span>
+<div class="w-full space-y-6">
+    <!-- Header Banner -->
+    <div class="bg-[#135860] text-white rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div class="flex items-center justify-between gap-3 mb-2">
+            <span class="px-3 py-1 text-[11px] font-bold tracking-wider uppercase rounded-full bg-white/15 text-white border border-white/20">Secure Token Access</span>
+            @if($registration?->token)
+                <span class="text-xs text-slate-200 font-mono hidden sm:inline-block">{{ $registration->token }}</span>
+            @endif
         </div>
-        <h1 class="text-3xl font-heading font-extrabold text-white mt-2">Ficha Médica y Autorizaciones</h1>
-        <p class="text-slate-300 mt-1">
-            Acampante: <span class="text-blue-400 font-bold">{{ $registration->camper->first_name }} {{ $registration->camper->last_name }}</span> 
-            (Temporada {{ $registration->session_year }})
-        </p>
+        <h1 class="text-2xl sm:text-3xl font-heading font-bold text-white">Medical Record & Consents Update</h1>
+        @if ($registration && $registration->camper)
+            <p class="text-slate-200 mt-1 text-xs sm:text-sm">
+                Camper: <span class="text-white font-bold">{{ $registration->camper->first_name }} {{ $registration->camper->last_name }}</span> 
+                (Session Year {{ $registration->campEvent->year ?? '' }})
+            </p>
+        @endif
     </div>
 
-    @if($saved)
-        <div class="bg-emerald-950/50 border border-emerald-500/40 rounded-xl p-4 text-emerald-300 text-sm flex items-center gap-3">
-            <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <span>La información médica y autorizaciones se han actualizado correctamente.</span>
+    @if(session()->has('warning'))
+        <div class="p-4 bg-amber-50 border border-amber-200 text-amber-900 text-sm font-medium rounded-2xl">
+            {{ session('warning') }}
         </div>
     @endif
 
-    <form wire:submit.prevent="save" class="space-y-8">
-        <!-- Medical Info -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-lg">
-            <h2 class="text-xl font-heading font-bold text-white border-b border-slate-800 pb-3">Antecedentes Médicos</h2>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Alergias Conocidas</label>
-                    <textarea wire:model.defer="allergies" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Medicamentos Actuales</label>
-                    <textarea wire:model.defer="medications" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Restricciones Dietéticas</label>
-                    <textarea wire:model.defer="dietary_restrictions" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Alertas Críticas</label>
-                    <textarea wire:model.defer="critical_alerts" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"></textarea>
-                </div>
-            </div>
+    @if($saved)
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-[#135860] text-sm flex items-center gap-3">
+            <svg class="w-5 h-5 text-[#135860] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            <span class="font-semibold">Medical record and consents updated successfully.</span>
         </div>
+    @endif
 
-        <!-- Consents -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-lg">
-            <h2 class="text-xl font-heading font-bold text-white border-b border-slate-800 pb-3">Autorizaciones Firma Digital</h2>
+    @if ($registration)
+        <form wire:submit.prevent="save" class="space-y-6">
+            <!-- Medical Record Card -->
+            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-8 space-y-6 shadow-sm">
+                <h2 class="text-xl font-heading font-bold text-[#135860] border-b border-slate-100 pb-3">Clinical Profile & Health Needs</h2>
 
-            <div class="space-y-4">
-                <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
-                    <input type="checkbox" wire:model.defer="photo_permission" class="mt-1 w-5 h-5 rounded bg-slate-900 text-blue-500 focus:ring-blue-500">
-                    <span class="text-slate-200 text-sm">Permiso de Fotografía y Video</span>
-                </label>
-
-                <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
-                    <input type="checkbox" wire:model.defer="travel_permission" class="mt-1 w-5 h-5 rounded bg-slate-900 text-blue-500 focus:ring-blue-500">
-                    <span class="text-slate-200 text-sm">Permiso de Traslados y Excursiones</span>
-                </label>
-
-                <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
-                    <input type="checkbox" wire:model.defer="contact_permission" class="mt-1 w-5 h-5 rounded bg-slate-900 text-blue-500 focus:ring-blue-500">
-                    <span class="text-slate-200 text-sm">Contacto Directo e Información</span>
-                </label>
-
-                <label class="flex items-start gap-3 p-4 rounded-xl bg-blue-950/30 border border-blue-500/40 cursor-pointer">
-                    <input type="checkbox" wire:model.defer="medical_permission" class="mt-1 w-5 h-5 rounded bg-slate-900 text-blue-500 focus:ring-blue-500">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <span class="font-bold text-blue-400 text-sm">Autorización de Atención Médica de Emergencia *</span>
-                        @error('medical_permission') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Known Allergies</label>
+                        <textarea wire:model.defer="allergies" rows="3" placeholder="Peanuts, bee stings, penicillin..." class="w-full rounded-2xl border-slate-300 text-slate-900 text-sm px-4 py-3 shadow-2xs focus:border-[#135860] focus:ring-2 focus:ring-[#135860]/20"></textarea>
                     </div>
-                </label>
-            </div>
-        </div>
 
-        <div class="flex justify-end">
-            <button type="submit" class="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg shadow-xl shadow-blue-500/25 transition-all">
-                Guardar Cambios
-            </button>
-        </div>
-    </form>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Current Medications</label>
+                        <textarea wire:model.defer="medications" rows="3" placeholder="Medication name, dosage, schedule..." class="w-full rounded-2xl border-slate-300 text-slate-900 text-sm px-4 py-3 shadow-2xs focus:border-[#135860] focus:ring-2 focus:ring-[#135860]/20"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Dietary Restrictions</label>
+                        <textarea wire:model.defer="dietary_restrictions" rows="3" placeholder="Vegetarian, gluten-free, dairy-free..." class="w-full rounded-2xl border-slate-300 text-slate-900 text-sm px-4 py-3 shadow-2xs focus:border-[#135860] focus:ring-2 focus:ring-[#135860]/20"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Critical Medical Flags</label>
+                        <textarea wire:model.defer="critical_alerts" rows="3" placeholder="Asthma, diabetes, severe allergies..." class="w-full rounded-2xl border-slate-300 text-slate-900 text-sm px-4 py-3 shadow-2xs focus:border-[#135860] focus:ring-2 focus:ring-[#135860]/20"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consents Card -->
+            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-8 space-y-6 shadow-sm">
+                <h2 class="text-xl font-heading font-bold text-[#135860] border-b border-slate-100 pb-3">Permissions & Digital Signature</h2>
+
+                <div class="space-y-3">
+                    <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer">
+                        <input type="checkbox" wire:model.defer="photo_permission" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#135860] focus:ring-[#135860]">
+                        <span class="text-slate-800 text-xs sm:text-sm font-medium">Photo & media permission for promotional use</span>
+                    </label>
+
+                    <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer">
+                        <input type="checkbox" wire:model.defer="travel_permission" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#135860] focus:ring-[#135860]">
+                        <span class="text-slate-800 text-xs sm:text-sm font-medium">Trip & field excursion transport permission</span>
+                    </label>
+
+                    <label class="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer">
+                        <input type="checkbox" wire:model.defer="contact_permission" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#135860] focus:ring-[#135860]">
+                        <span class="text-slate-800 text-xs sm:text-sm font-medium">Direct communication & camp updates permission</span>
+                    </label>
+
+                    <label class="flex items-start gap-3 p-4 rounded-2xl bg-[#135860]/10 border border-[#135860]/20 cursor-pointer">
+                        <input type="checkbox" wire:model.defer="medical_permission" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#135860] focus:ring-[#135860]">
+                        <div>
+                            <span class="font-bold text-[#135860] text-xs sm:text-sm">Emergency Medical Attention Authorization *</span>
+                            @error('medical_permission') <span class="text-xs text-rose-600 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Submit Button Bar -->
+            <div class="flex justify-end pt-2">
+                <button type="submit" wire:loading.attr="disabled" class="w-full sm:w-auto bg-[#135860] hover:bg-[#0d434a] text-white font-heading font-bold py-3.5 px-10 rounded-2xl shadow-md transition-all active:scale-[0.98] inline-flex items-center justify-center">
+                    <span wire:loading.remove>Save Medical & Consent Changes</span>
+                    <span wire:loading class="inline-flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                    </span>
+                </button>
+            </div>
+        </form>
+    @endif
 </div>

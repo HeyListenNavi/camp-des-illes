@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Guardians;
 use App\Filament\Resources\Guardians\Pages\CreateGuardian;
 use App\Filament\Resources\Guardians\Pages\EditGuardian;
 use App\Filament\Resources\Guardians\Pages\ListGuardians;
-use App\Filament\Resources\Guardians\Pages\ViewGuardian;
 use App\Filament\Resources\Guardians\Schemas\GuardianForm;
 use App\Filament\Resources\Guardians\Schemas\GuardianInfolist;
 use App\Filament\Resources\Guardians\Tables\GuardiansTable;
@@ -23,13 +22,13 @@ class GuardianResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static ?string $navigationLabel = 'Tutores';
+    protected static ?string $navigationLabel = 'Guardians';
 
-    protected static ?string $modelLabel = 'tutor';
+    protected static ?string $modelLabel = 'guardian';
 
-    protected static ?string $pluralModelLabel = 'tutores';
+    protected static ?string $pluralModelLabel = 'guardians';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Personas';
+    protected static UnitEnum|string|null $navigationGroup = 'People & Directory';
 
     protected static ?int $navigationSort = 2;
 

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentStatus;
+use App\Enums\PaymentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -21,11 +23,16 @@ class Payment extends Model
         'notes',
     ];
 
-    protected $casts = [
-        'amount'   => 'decimal:2',
-        'due_date' => 'date',
-        'paid_at'  => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'payment_type' => PaymentType::class,
+            'status'       => PaymentStatus::class,
+            'amount'       => 'decimal:2',
+            'due_date'     => 'date',
+            'paid_at'      => 'datetime',
+        ];
+    }
 
     public function payable(): MorphTo
     {

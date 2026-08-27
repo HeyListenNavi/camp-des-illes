@@ -2,11 +2,17 @@
 
 namespace App\Filament\Resources\Campers\Tables;
 
+use App\Enums\Gender;
+use App\Models\Camper;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
 
@@ -16,56 +22,92 @@ class CampersTable
     {
         return $table
             ->columns([
-                TextColumn::make('first_name')
-                    ->label('Nombre')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('last_name')
-                    ->label('Apellidos')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('full_name')
+                    ->label('Camper Name')
+                    ->state(fn (Camper $record): string => "{$record->first_name} {$record->last_name}")
+                    ->searchable(['first_name', 'last_name'])
+                    ->sortable()
+                    ->icon('heroicon-m-user')
+                    ->iconColor('primary')
+                    ->weight('bold'),
 
                 TextColumn::make('date_of_birth')
-                    ->label('Edad')
-                    ->formatStateUsing(
-                        fn ($state) => $state
-                            ? Carbon::parse($state)->age . ' años'
-                            : '-'
-                    )
+                    ->label('Age')
+                    ->state(function (Camper $record): string {
+                        if (! $record->date_of_birth) {
+                            return '—';
+                        }
+                        $age = Carbon::parse($record->date_of_birth)->age;
+
+                        return "{$age} yrs";
+                    })
+                    ->badge()
+                    ->color('gray')
                     ->sortable(),
 
                 TextColumn::make('gender')
-                    ->label('Género')
+                    ->label('Gender')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'M' => 'Masculino',
-                        'F' => 'Femenino',
-                        'Other' => 'Otro',
-                        default => $state,
+                    ->sortable(),
+
+                TextColumn::make('medical_status')
+                    ->label('Medical Status')
+                    ->state(function (Camper $record): string {
+                        $med = $record->medical;
+                        if (! $med) {
+                            return 'Standard';
+                        }
+                        if (! empty($med->critical_alerts) || ! empty($med->allergies)) {
+                            return 'Medical Alert';
+                        }
+
+                        return 'Standard';
                     })
+                    ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'M' => 'info',
-                        'F' => 'fuchsia',
-                        default => 'gray',
+                        'Medical Alert' => 'danger',
+                        default => 'success',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'Medical Alert' => 'heroicon-m-exclamation-triangle',
+                        default => 'heroicon-m-check-circle',
                     }),
 
-                TextColumn::make('medical.allergies')
-                    ->label('Alergias')
-                    ->limit(30)
-                    ->placeholder('Sin registrar')
+                TextColumn::make('health_card_number')
+                    ->label('Health Card #')
+                    ->searchable()
+                    ->copyable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('created_at')
-                    ->label('Registrado')
-                    ->dateTime('d/m/Y')
+                    ->label('Registered Date')
+                    ->dateTime('M j, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('last_name')
+            ->filters([
+                SelectFilter::make('gender')
+                    ->label('Filter by Gender')
+                    ->options(Gender::class)
+                    ->native(false),
+            ])
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    Action::make('openMedicalPortal')
+                        ->label('Open Medical & Consent Form')
+                        ->icon('heroicon-m-heart')
+                        ->color('warning')
+                        ->url(function (Camper $record): ?string {
+                            $latestReg = $record->registrations()->latest()->first();
+
+                            return $latestReg?->token ? url("/public/medical/{$latestReg->token}") : null;
+                        }, shouldOpenInNewTab: true)
+                        ->visible(fn (Camper $record): bool => (bool) $record->registrations()->latest()->first()?->token),
+                    DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

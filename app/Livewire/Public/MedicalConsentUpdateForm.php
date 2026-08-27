@@ -5,25 +5,31 @@ namespace App\Livewire\Public;
 use App\Models\CamperConsent;
 use App\Models\CamperMedical;
 use App\Models\CamperRegistration;
-use App\Models\FormSubmission;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class MedicalConsentUpdateForm extends Component
 {
     public string $token;
+
     public ?CamperRegistration $registration = null;
 
     // Medical fields
     public ?string $allergies = null;
+
     public ?string $medications = null;
+
     public ?string $dietary_restrictions = null;
+
     public ?string $critical_alerts = null;
 
     // Consent fields
     public bool $photo_permission = false;
+
     public bool $travel_permission = false;
+
     public bool $contact_permission = false;
+
     public bool $medical_permission = false;
 
     public bool $saved = false;
@@ -31,9 +37,17 @@ class MedicalConsentUpdateForm extends Component
     public function mount(string $token): void
     {
         $this->token = $token;
-        $this->registration = CamperRegistration::with(['camper.medical', 'consent'])->where('token', $token)->firstOrFail();
+        $this->registration = CamperRegistration::with(['camper.medical', 'consent'])
+            ->where('token', $token)
+            ->first();
 
-        $medical = $this->registration->camper->medical;
+        if (! $this->registration) {
+            session()->flash('warning', 'Invalid or expired access link.');
+
+            return;
+        }
+
+        $medical = $this->registration->camper?->medical;
         if ($medical) {
             $this->allergies = $medical->allergies;
             $this->medications = $medical->medications;
@@ -43,10 +57,10 @@ class MedicalConsentUpdateForm extends Component
 
         $consent = $this->registration->consent;
         if ($consent) {
-            $this->photo_permission = $consent->photo_permission;
-            $this->travel_permission = $consent->travel_permission;
-            $this->contact_permission = $consent->contact_permission;
-            $this->medical_permission = $consent->medical_permission;
+            $this->photo_permission = (bool) $consent->photo_permission;
+            $this->travel_permission = (bool) $consent->travel_permission;
+            $this->contact_permission = (bool) $consent->contact_permission;
+            $this->medical_permission = (bool) $consent->medical_permission;
         }
     }
 
@@ -59,10 +73,16 @@ class MedicalConsentUpdateForm extends Component
 
     public function save(): void
     {
+        if (! $this->registration) {
+            session()->flash('error', 'Unable to save. Invalid registration session.');
+
+            return;
+        }
+
         $this->validate();
 
         DB::transaction(function () {
-            // Actualizar Ficha Médica
+            // Update Medical Record
             CamperMedical::updateOrCreate(
                 ['camper_id' => $this->registration->camper_id],
                 [
@@ -73,7 +93,7 @@ class MedicalConsentUpdateForm extends Component
                 ]
             );
 
-            // Actualizar Consentimientos
+            // Update Consents
             CamperConsent::updateOrCreate(
                 ['camper_registration_id' => $this->registration->id],
                 [
@@ -85,7 +105,8 @@ class MedicalConsentUpdateForm extends Component
                 ]
             );
 
-            // Auditoría
+            // Auditoría (Deshabilitado temporalmente hasta definir modelo FormSubmission)
+            /*
             FormSubmission::create([
                 'form_type' => 'medical',
                 'camper_registration_id' => $this->registration->id,
@@ -96,6 +117,7 @@ class MedicalConsentUpdateForm extends Component
                     'updated_consent' => true,
                 ],
             ]);
+            */
 
             $this->saved = true;
         });

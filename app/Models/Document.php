@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentFileType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -19,9 +20,13 @@ class Document extends Model
         'uploaded_at',
     ];
 
-    protected $casts = [
-        'uploaded_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'file_type' => DocumentFileType::class,
+            'uploaded_at' => 'datetime',
+        ];
+    }
 
     public function documentable(): MorphTo
     {

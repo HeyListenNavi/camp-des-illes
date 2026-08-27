@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources\Guardians\Tables;
 
+use App\Models\Guardian;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -15,51 +18,49 @@ class GuardiansTable
     {
         return $table
             ->columns([
-                TextColumn::make('first_name')
-                    ->label('Nombre')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('last_name')
-                    ->label('Apellidos')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('full_name')
+                    ->label('Guardian Name')
+                    ->state(fn (Guardian $record): string => "{$record->first_name} {$record->last_name}")
+                    ->searchable(['first_name', 'last_name'])
+                    ->sortable()
+                    ->icon('heroicon-m-user')
+                    ->iconColor('primary')
+                    ->weight('bold'),
 
                 TextColumn::make('phone')
-                    ->label('Teléfono')
+                    ->label('Phone Number')
+                    ->icon('heroicon-m-phone')
                     ->searchable()
                     ->copyable(),
 
                 TextColumn::make('email')
-                    ->label('Correo')
+                    ->label('Email Address')
+                    ->icon('heroicon-m-envelope')
                     ->searchable()
                     ->copyable()
                     ->toggleable(),
 
-                TextColumn::make('has_custody')
-                    ->label('Custodia')
+                TextColumn::make('campers_count')
+                    ->label('Linked Campers')
+                    ->counts('campers')
                     ->badge()
-                    ->formatStateUsing(
-                        fn (bool $state): string => $state
-                            ? 'Sí'
-                            : 'No'
-                    )
-                    ->color(
-                        fn (bool $state): string => $state
-                            ? 'success'
-                            : 'gray'
-                    ),
+                    ->color('primary')
+                    ->icon('heroicon-m-user-group')
+                    ->sortable(),
 
                 TextColumn::make('created_at')
-                    ->label('Registrado')
-                    ->dateTime('d/m/Y')
+                    ->label('Registered Date')
+                    ->dateTime('M j, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('last_name')
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

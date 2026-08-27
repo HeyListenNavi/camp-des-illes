@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CamperRegistrations\Pages;
 
 use App\Filament\Resources\CamperRegistrations\CamperRegistrationResource;
+use App\Filament\Resources\CamperRegistrations\Widgets\RegistrationStatsOverview;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
@@ -14,6 +15,13 @@ class ListCamperRegistrations extends ListRecords
     {
         return [
             CreateAction::make(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            RegistrationStatsOverview::class,
         ];
     }
 }

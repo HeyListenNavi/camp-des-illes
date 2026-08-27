@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('event_service_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('group_event_id')->constrained('group_events')->cascadeOnDelete();
-            $table->enum('service_category', ['meal', 'lodging', 'activity']);
+            $table->string('service_category');
             $table->string('service_name');
             $table->integer('quantity')->default(1);
             $table->text('notes')->nullable();

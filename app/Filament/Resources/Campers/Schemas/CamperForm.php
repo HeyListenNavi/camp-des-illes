@@ -2,14 +2,14 @@
 
 namespace App\Filament\Resources\Campers\Schemas;
 
+use App\Enums\Gender;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -19,87 +19,123 @@ class CamperForm
     {
         return $schema
             ->components([
-                Tabs::make('CamperTabs')
-                    ->tabs([
-                        Tab::make('Información General')
-                            ->icon(Heroicon::OutlinedIdentification)
+                Grid::make(['default' => 1, 'lg' => 3])
+                    ->schema([
+                        Grid::make(1)
                             ->schema([
-                                Grid::make(2)
+                                Section::make('Personal Information')
+                                    ->description('Camper identity and birth details.')
+                                    ->icon(Heroicon::OutlinedUser)
                                     ->schema([
-                                        TextInput::make('first_name')
-                                            ->label('Nombre(s)')
-                                            ->required()
-                                            ->maxLength(255),
+                                        Grid::make(2)->schema([
+                                            TextInput::make('first_name')
+                                                ->label('First Name')
+                                                ->prefixIcon(Heroicon::OutlinedUser)
+                                                ->required()
+                                                ->maxLength(255),
 
-                                        TextInput::make('last_name')
-                                            ->label('Apellidos')
-                                            ->required()
-                                            ->maxLength(255),
+                                            TextInput::make('last_name')
+                                                ->label('Last Name')
+                                                ->prefixIcon(Heroicon::OutlinedUser)
+                                                ->required()
+                                                ->maxLength(255),
 
-                                        Select::make('gender')
-                                            ->label('Género')
-                                            ->options([
-                                                'M' => 'Masculino',
-                                                'F' => 'Femenino',
-                                                'Other' => 'Otro',
-                                            ])
-                                            ->required(),
+                                            Select::make('gender')
+                                                ->label('Gender')
+                                                ->options(Gender::class)
+                                                ->native(false)
+                                                ->required(),
 
-                                        DatePicker::make('date_of_birth')
-                                            ->label('Fecha de nacimiento')
-                                            ->required()
-                                            ->maxDate(now()),
+                                            DatePicker::make('date_of_birth')
+                                                ->label('Date of Birth')
+                                                ->prefixIcon(Heroicon::OutlinedCalendar)
+                                                ->native(false)
+                                                ->required()
+                                                ->maxDate(now()),
+                                        ]),
                                     ]),
-                            ]),
 
-                        Tab::make('Contacto y Custodia')
-                            ->icon(Heroicon::OutlinedHome)
-                            ->schema([
-                                Textarea::make('address')
-                                    ->label('Dirección completa')
-                                    ->rows(3)
-                                    ->columnSpanFull(),
-
-                                Textarea::make('custody_details')
-                                    ->label('Detalles de custodia')
-                                    ->helperText(
-                                        'Instrucciones especiales sobre entrega y recogida del menor.'
-                                    )
-                                    ->rows(4)
-                                    ->columnSpanFull(),
-                            ]),
-
-                        Tab::make('Expediente Médico')
-                            ->icon(Heroicon::OutlinedHeart)
-                            ->schema([
-                                TextInput::make('health_card_number')
-                                    ->label('Número de seguro / tarjeta de salud')
-                                    ->maxLength(255)
-                                    ->columnSpanFull(),
-
-                                Fieldset::make('Detalles clínicos')
-                                    ->relationship('medical')
+                                Section::make('Medical Profile')
+                                    ->description('Health card details, allergies, and dietary needs.')
+                                    ->icon(Heroicon::OutlinedHeart)
                                     ->schema([
-                                        Textarea::make('allergies')
-                                            ->label('Alergias')
-                                            ->placeholder('Ej. Penicilina, nueces...')
-                                            ->rows(3),
+                                        TextInput::make('health_card_number')
+                                            ->label('Health Card / Insurance Number')
+                                            ->prefixIcon(Heroicon::OutlinedCreditCard)
+                                            ->maxLength(255)
+                                            ->columnSpanFull(),
 
-                                        Textarea::make('medications')
-                                            ->label('Medicamentos actuales')
-                                            ->rows(3),
+                                        Fieldset::make('Clinical Details')
+                                            ->relationship('medical')
+                                            ->schema([
+                                                Textarea::make('allergies')
+                                                    ->label('Known Allergies')
+                                                    ->placeholder('e.g. Penicillin, Peanuts, Bee stings...')
+                                                    ->rows(2)
+                                                    ->autosize(),
 
-                                        Textarea::make('dietary_restrictions')
-                                            ->label('Restricciones alimenticias')
-                                            ->rows(3),
+                                                Textarea::make('medications')
+                                                    ->label('Current Medications')
+                                                    ->placeholder('e.g. Inhaler as needed, EpiPen...')
+                                                    ->rows(2)
+                                                    ->autosize(),
 
-                                        Textarea::make('critical_alerts')
-                                            ->label('Alertas críticas')
-                                            ->rows(3),
-                                    ])
-                                    ->columns(2)
-                                    ->columnSpanFull(),
-                            ]),
+                                                Textarea::make('dietary_restrictions')
+                                                    ->label('Dietary Restrictions')
+                                                    ->placeholder('e.g. Vegetarian, Gluten-Free...')
+                                                    ->rows(2)
+                                                    ->autosize()
+                                                    ->columnSpanFull(),
+                                            ])
+                                            ->columns(2)
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Residential Address')
+                                    ->description('Home address.')
+                                    ->icon(Heroicon::OutlinedHome)
+                                    ->schema([
+                                        Textarea::make('address')
+                                            ->label('Full Address')
+                                            ->rows(2)
+                                            ->autosize()
+                                            ->columnSpanFull(),
+                                    ]),
+                            ])
+                            ->columnSpan(['default' => 1, 'lg' => 2]),
+
+                        Grid::make(1)
+                            ->schema([
+                                Section::make('Critical Health Alerts')
+                                    ->description('Emergency clinical flags')
+                                    ->icon(Heroicon::OutlinedExclamationTriangle)
+                                    ->schema([
+                                        Fieldset::make('Emergency Flags')
+                                            ->relationship('medical')
+                                            ->schema([
+                                                Textarea::make('critical_alerts')
+                                                    ->label('Critical Medical Flags')
+                                                    ->placeholder('Highlight severe medical conditions or severe allergy instructions...')
+                                                    ->rows(3)
+                                                    ->autosize()
+                                                    ->columnSpanFull(),
+                                            ]),
+                                    ]),
+
+                                Section::make('Custody & Authorized Pickup')
+                                    ->description('Child release & legal notes')
+                                    ->icon(Heroicon::OutlinedShieldCheck)
+                                    ->schema([
+                                        Textarea::make('custody_details')
+                                            ->label('Custody Notes & Restrictions')
+                                            ->placeholder('List individuals authorized or restricted from picking up the camper...')
+                                            ->helperText('Special instructions regarding pickup and release of minor.')
+                                            ->rows(3)
+                                            ->autosize()
+                                            ->columnSpanFull(),
+                                    ]),
+                            ])
+                            ->columnSpan(['default' => 1, 'lg' => 1]),
                     ])
                     ->columnSpanFull(),
             ]);

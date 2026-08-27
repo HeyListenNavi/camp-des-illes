@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MealType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -18,10 +19,14 @@ class MealOption extends Model
         'is_active',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'price_per_person' => 'decimal:2',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'meal_type' => MealType::class,
+            'is_active' => 'boolean',
+            'price_per_person' => 'decimal:2',
+        ];
+    }
 
     // Corregido: Es MorphMany porque EventServiceRequest usa 'serviceable'
     public function serviceRequests(): MorphMany
