@@ -41,13 +41,6 @@ class MealOptionsTable
                     ->label('Active')
                     ->boolean()
                     ->sortable(),
-
-                TextColumn::make('service_requests_count')
-                    ->label('Requests')
-                    ->counts('serviceRequests')
-                    ->badge()
-                    ->color('info')
-                    ->sortable(),
             ])
             ->defaultSort('name')
             ->actions([
