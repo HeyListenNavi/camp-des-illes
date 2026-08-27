@@ -8,7 +8,6 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -28,7 +27,19 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Emerald,
+                'primary' => [
+                    50 => '#e2f4f7',
+                    100 => '#c6eaef',
+                    200 => '#9bd5df',
+                    300 => '#6bb9c6',
+                    400 => '#3999a9',
+                    500 => '#1f7d8c',
+                    600 => '#15616d',
+                    700 => '#124d57',
+                    800 => '#103e46',
+                    900 => '#0d3238',
+                    950 => '#071b1f',
+                ],
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
