@@ -2,12 +2,18 @@
 
 namespace App\Filament\Resources\GroupEvents\Tables;
 
+use App\Enums\GroupEventStatus;
+use App\Models\GroupEvent;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Carbon;
 
 class GroupEventsTable
 {
@@ -16,50 +22,90 @@ class GroupEventsTable
         return $table
             ->columns([
                 TextColumn::make('group.name')
-                    ->label('Nombre del Grupo')
+                    ->label('Host Group Name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->icon('heroicon-m-building-office-2')
+                    ->iconColor('primary')
+                    ->weight('bold'),
 
                 TextColumn::make('group.primary_contact_name')
-                    ->label('Contacto Principal')
-                    ->searchable(),
-
-                TextColumn::make('group.email')
-                    ->label('Correo Electrónico')
-                    ->searchable(),
+                    ->label('Primary Contact')
+                    ->searchable()
+                    ->icon('heroicon-m-user'),
 
                 TextColumn::make('group.phone')
-                    ->label('Teléfono'),
+                    ->label('Phone Number')
+                    ->icon('heroicon-m-phone')
+                    ->copyable(),
+
+                TextColumn::make('group.email')
+                    ->label('Email Address')
+                    ->icon('heroicon-m-envelope')
+                    ->searchable()
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('start_date')
-                    ->label('Inicio')
-                    ->date('d/m/Y')
+                    ->label('Event Dates')
+                    ->state(function (GroupEvent $record): string {
+                        if (! $record->start_date || ! $record->end_date) {
+                            return 'Dates TBD';
+                        }
+                        $start = Carbon::parse($record->start_date)->format('M j, Y');
+                        $end = Carbon::parse($record->end_date)->format('M j, Y');
+
+                        return "{$start} – {$end}";
+                    })
+                    ->icon('heroicon-m-calendar')
                     ->sortable(),
 
-                TextColumn::make('end_date')
-                    ->label('Término')
-                    ->date('d/m/Y')
-                    ->sortable(),
+                TextColumn::make('duration')
+                    ->label('Duration')
+                    ->state(function (GroupEvent $record): string {
+                        if (! $record->start_date || ! $record->end_date) {
+                            return '—';
+                        }
+                        $days = Carbon::parse($record->start_date)->diffInDays(Carbon::parse($record->end_date)) + 1;
+
+                        return "{$days} ".($days === 1 ? 'day' : 'days');
+                    })
+                    ->badge()
+                    ->color('gray')
+                    ->icon('heroicon-m-clock'),
 
                 TextColumn::make('expected_attendees')
-                    ->label('Asistentes')
+                    ->label('Attendees')
                     ->numeric()
+                    ->badge()
+                    ->color('info')
+                    ->icon('heroicon-m-user-group')
                     ->sortable(),
 
                 TextColumn::make('status')
-                    ->label('Estatus')
-                    ->badge(),
+                    ->label('Inquiry Status')
+                    ->badge()
+                    ->sortable(),
 
                 TextColumn::make('created_at')
-                    ->label('Fecha Solicitud')
-                    ->dateTime('d/m/Y H:i')
+                    ->label('Submitted Date')
+                    ->dateTime('M j, Y g:i A')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
+            ->filters([
+                SelectFilter::make('status')
+                    ->label('Filter by Status')
+                    ->options(GroupEventStatus::class)
+                    ->native(false),
+            ])
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make()->modalWidth('4xl'),
+                    EditAction::make()->modalWidth('4xl'),
+                    DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

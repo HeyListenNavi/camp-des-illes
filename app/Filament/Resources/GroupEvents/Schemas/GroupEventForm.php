@@ -10,6 +10,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 
 class GroupEventForm
 {
@@ -17,73 +18,111 @@ class GroupEventForm
     {
         return $schema
             ->components([
-                Grid::make(2)
+                Grid::make(['default' => 1, 'lg' => 2])
                     ->schema([
-                        Section::make('Datos del Grupo Solicitante')
+                        Section::make('Host Group & Primary Contact')
+                            ->description('Contact and organization details of the applicant group.')
+                            ->icon(Heroicon::OutlinedBuildingOffice2)
                             ->relationship('group')
                             ->schema([
                                 TextInput::make('name')
-                                    ->label('Nombre del Grupo')
+                                    ->label('Group / Event Name')
+                                    ->prefixIcon(Heroicon::OutlinedBuildingOffice2)
+                                    ->placeholder('e.g. Grace Fellowship Youth Retreat')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
 
                                 TextInput::make('organization_name')
-                                    ->label('Organización / Empresa')
-                                    ->maxLength(255),
+                                    ->label('Organization / Company')
+                                    ->prefixIcon(Heroicon::OutlinedBriefcase)
+                                    ->placeholder('e.g. Grace Community Church')
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
 
                                 TextInput::make('primary_contact_name')
-                                    ->label('Contacto Principal')
+                                    ->label('Primary Contact Name')
+                                    ->prefixIcon(Heroicon::OutlinedUser)
                                     ->required()
                                     ->maxLength(255),
 
                                 TextInput::make('phone')
-                                    ->label('Teléfono')
+                                    ->label('Phone Number')
+                                    ->prefixIcon(Heroicon::OutlinedPhone)
+                                    ->tel()
                                     ->required()
                                     ->maxLength(50),
 
                                 TextInput::make('email')
-                                    ->label('Correo Electrónico')
+                                    ->label('Email Address')
+                                    ->prefixIcon(Heroicon::OutlinedEnvelope)
                                     ->email()
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
 
                                 Textarea::make('address')
-                                    ->label('Dirección')
-                                    ->rows(2)
+                                    ->label('Full Address')
+                                    ->placeholder('e.g. 100 Church Street, Montreal')
+                                    ->rows(3)
+                                    ->autosize()
                                     ->columnSpanFull(),
                             ])
-                            ->columns(2),
+                            ->columns(2)
+                            ->columnSpan(1),
 
-                        Section::make('Detalles del Evento de Grupo')
+                        Section::make('Event Schedule & Requirements')
+                            ->description('Dates, capacity, and operational logistics.')
+                            ->icon(Heroicon::OutlinedCalendarDays)
                             ->schema([
                                 Select::make('status')
-                                    ->label('Estatus de la Solicitud')
+                                    ->label('Inquiry Request Status')
                                     ->options(GroupEventStatus::class)
                                     ->default(GroupEventStatus::InquiryReceived)
+                                    ->native(false)
                                     ->required()
                                     ->columnSpanFull(),
 
                                 DatePicker::make('start_date')
-                                    ->label('Fecha de Inicio')
+                                    ->label('Start Date')
+                                    ->prefixIcon(Heroicon::OutlinedCalendar)
+                                    ->native(false)
                                     ->required(),
 
                                 DatePicker::make('end_date')
-                                    ->label('Fecha de Término')
-                                    ->required(),
+                                    ->label('End Date')
+                                    ->prefixIcon(Heroicon::OutlinedCalendar)
+                                    ->native(false)
+                                    ->required()
+                                    ->afterOrEqual('start_date'),
 
                                 TextInput::make('expected_attendees')
-                                    ->label('Asistentes Esperados')
+                                    ->label('Expected Attendees')
+                                    ->prefixIcon(Heroicon::OutlinedUserGroup)
                                     ->numeric()
                                     ->required()
                                     ->columnSpanFull(),
 
                                 Textarea::make('operational_notes')
-                                    ->label('Notas Operativas / Requerimientos Especiales')
-                                    ->rows(4)
+                                    ->label('Operational Notes & Special Requests')
+                                    ->placeholder('Specify lodging, dining, audio/visual, or custom activity requirements...')
+                                    ->rows(3)
+                                    ->autosize()
+                                    ->columnSpanFull(),
+
+                                TextInput::make('token')
+                                    ->label('Tracking Token')
+                                    ->prefixIcon(Heroicon::OutlinedKey)
+                                    ->placeholder('Auto-generated code')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->copyable()
                                     ->columnSpanFull(),
                             ])
-                            ->columns(2),
-                    ]),
+                            ->columns(2)
+                            ->columnSpan(1),
+                    ])
+                    ->columnSpanFull(),
             ]);
     }
 }

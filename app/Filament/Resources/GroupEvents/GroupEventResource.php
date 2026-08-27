@@ -23,13 +23,13 @@ class GroupEventResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
-    protected static ?string $navigationLabel = 'Solicitudes de Grupos';
+    protected static ?string $navigationLabel = 'Group Event Inquiries';
 
-    protected static ?string $modelLabel = 'solicitud de grupo';
+    protected static ?string $modelLabel = 'group event inquiry';
 
-    protected static ?string $pluralModelLabel = 'solicitudes de grupos';
+    protected static ?string $pluralModelLabel = 'group event inquiries';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Eventos';
+    protected static UnitEnum|string|null $navigationGroup = 'Event Operations';
 
     protected static ?int $navigationSort = 2;
 
