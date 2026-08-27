@@ -37,18 +37,7 @@ class CampersTable
 
                 TextColumn::make('gender')
                     ->label('Género')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'M' => 'Masculino',
-                        'F' => 'Femenino',
-                        'Other' => 'Otro',
-                        default => $state,
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'M' => 'info',
-                        'F' => 'fuchsia',
-                        default => 'gray',
-                    }),
+                    ->badge(),
 
                 TextColumn::make('medical.allergies')
                     ->label('Alergias')

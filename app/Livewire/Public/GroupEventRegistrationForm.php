@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Public;
 
+use App\Enums\DocumentFileType;
+use App\Enums\EventServiceCategory;
+use App\Enums\GroupEventStatus;
 use App\Models\Activity;
 use App\Models\GroupEvent;
 use App\Models\GuestGroup;
@@ -90,7 +93,7 @@ class GroupEventRegistrationForm extends Component
                 'end_date' => $this->end_date,
                 'expected_attendees' => $this->expected_attendees,
                 'special_activities' => $this->special_activities,
-                'status' => 'inquiry_received',
+                'status' => GroupEventStatus::InquiryReceived,
             ]);
 
             // 3. Documentos
@@ -99,7 +102,7 @@ class GroupEventRegistrationForm extends Component
                 $event->documents()->create([
                     'title' => 'Póliza de Seguro',
                     'file_path' => $path,
-                    'file_type' => $this->insurance_file->getClientOriginalExtension(),
+                    'file_type' => DocumentFileType::Other,
                     'uploaded_at' => now(),
                 ]);
             }
@@ -109,7 +112,7 @@ class GroupEventRegistrationForm extends Component
                 $event->documents()->create([
                     'title' => 'Contrato Firmado',
                     'file_path' => $path,
-                    'file_type' => $this->contract_file->getClientOriginalExtension(),
+                    'file_type' => DocumentFileType::Contract,
                     'uploaded_at' => now(),
                 ]);
             }
@@ -122,7 +125,7 @@ class GroupEventRegistrationForm extends Component
             foreach ($this->selected_meals as $id => $quantity) {
                 if ((int)$quantity > 0 && isset($mealModels[$id])) {
                     $servicesToInsert[] = [
-                        'service_category' => 'meal',
+                        'service_category' => EventServiceCategory::Meal,
                         'service_name' => $mealModels[$id]->name,
                         'serviceable_id' => $id,
                         'serviceable_type' => MealOption::class,
@@ -136,7 +139,7 @@ class GroupEventRegistrationForm extends Component
             foreach ($this->selected_rooms as $id => $quantity) {
                 if ((int)$quantity > 0 && isset($roomModels[$id])) {
                     $servicesToInsert[] = [
-                        'service_category' => 'lodging',
+                        'service_category' => EventServiceCategory::Lodging,
                         'service_name' => $roomModels[$id]->name,
                         'serviceable_id' => $id,
                         'serviceable_type' => RoomType::class,
@@ -150,7 +153,7 @@ class GroupEventRegistrationForm extends Component
             foreach ($this->selected_activities as $id => $quantity) {
                 if ((int)$quantity > 0 && isset($activityModels[$id])) {
                     $servicesToInsert[] = [
-                        'service_category' => 'activity',
+                        'service_category' => EventServiceCategory::Activity,
                         'service_name' => $activityModels[$id]->name,
                         'serviceable_id' => $id,
                         'serviceable_type' => Activity::class,

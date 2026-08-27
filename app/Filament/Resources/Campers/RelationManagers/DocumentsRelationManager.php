@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Campers\RelationManagers;
 
+use App\Enums\DocumentFileType;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -38,13 +39,7 @@ class DocumentsRelationManager extends RelationManager
 
                     Select::make('file_type')
                         ->label('Tipo de Documento')
-                        ->options([
-                            'medical_release' => 'Exoneración Médica',
-                            'identification' => 'Identificación Oficial',
-                            'photo' => 'Fotografía',
-                            'custody_paper' => 'Documento de Custodia',
-                            'other' => 'Otro',
-                        ])
+                        ->options(DocumentFileType::class)
                         ->required(),
 
                     FileUpload::make('file_path')

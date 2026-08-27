@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\CamperRegistrations\Schemas;
 
+use App\Enums\RegistrationStatus;
 use App\Models\Camper;
 use App\Models\CampEvent;
 use Filament\Forms\Components\Select;
@@ -35,11 +36,7 @@ class CamperRegistrationForm
 
                         Select::make('status')
                             ->label('Estado')
-                            ->options([
-                                'pending' => 'Pendiente',
-                                'confirmed' => 'Confirmada',
-                                'cancelled' => 'Cancelada',
-                            ])
+                            ->options(RegistrationStatus::class)
                             ->required(),
                     ]),
             ]);

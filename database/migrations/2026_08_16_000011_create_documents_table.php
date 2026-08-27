@@ -13,7 +13,7 @@ return new class extends Migration
             $table->morphs('documentable');
             $table->string('title');
             $table->string('file_path');
-            $table->enum('file_type', ['pdf', 'form', 'contract', 'consent', 'other']);
+            $table->string('file_type');
             $table->timestamp('uploaded_at')->useCurrent();
             $table->timestamps();
         });

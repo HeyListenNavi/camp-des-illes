@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->morphs('payable');
             $table->decimal('amount', 10, 2);
-            $table->enum('payment_type', ['deposit', 'partial', 'balance']);
-            $table->enum('status', ['paid', 'partial', 'pending', 'overdue'])->default('pending');
+            $table->string('payment_type');
+            $table->string('status')->default('pending');
             $table->date('due_date');
             $table->timestamp('paid_at')->nullable();
             $table->text('notes')->nullable();

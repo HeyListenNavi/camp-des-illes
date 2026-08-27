@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Gender;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -29,6 +30,7 @@ class Camper extends Model
     protected function casts(): array
     {
         return [
+            'gender' => Gender::class,
             'date_of_birth' => 'date',
             'access_token_expires_at' => 'datetime',
         ];

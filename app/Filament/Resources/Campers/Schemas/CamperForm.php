@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Campers\Schemas;
 
+use App\Enums\Gender;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -38,11 +39,7 @@ class CamperForm
 
                                         Select::make('gender')
                                             ->label('Género')
-                                            ->options([
-                                                'M' => 'Masculino',
-                                                'F' => 'Femenino',
-                                                'Other' => 'Otro',
-                                            ])
+                                            ->options(Gender::class)
                                             ->required(),
 
                                         DatePicker::make('date_of_birth')

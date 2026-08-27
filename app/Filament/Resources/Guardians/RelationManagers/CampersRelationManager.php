@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Guardians\RelationManagers;
 
+use App\Enums\Gender;
+use App\Enums\GuardianRelationship;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -48,11 +50,7 @@ class CampersRelationManager extends RelationManager
 
                     Select::make('gender')
                         ->label('Género')
-                        ->options([
-                            'male' => 'Masculino',
-                            'female' => 'Femenino',
-                            'other' => 'Otro',
-                        ])
+                        ->options(Gender::class)
                         ->required(),
 
                     DatePicker::make('date_of_birth')
@@ -63,14 +61,7 @@ class CampersRelationManager extends RelationManager
                 Grid::make(3)->schema([
                     Select::make('relationship_type')
                         ->label('Parentesco')
-                        ->options([
-                            'Padre' => 'Padre',
-                            'Madre' => 'Madre',
-                            'Tutor Legal' => 'Tutor Legal',
-                            'Abuelo/a' => 'Abuelo/a',
-                            'Tío/a' => 'Tío/a',
-                            'Otro' => 'Otro',
-                        ])
+                        ->options(GuardianRelationship::class)
                         ->required(),
 
                     Checkbox::make('is_primary_guardian')
@@ -96,7 +87,9 @@ class CampersRelationManager extends RelationManager
 
                 TextColumn::make('pivot.relationship_type')
                     ->label('Parentesco')
-                    ->badge(),
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => GuardianRelationship::tryFrom($state)?->getLabel() ?? $state)
+                    ->color(fn ($state) => GuardianRelationship::tryFrom($state)?->getColor() ?? 'gray'),
 
                 IconColumn::make('pivot.is_primary_guardian')
                     ->label('Principal')
@@ -124,14 +117,7 @@ class CampersRelationManager extends RelationManager
                         $action->getRecordSelect(),
                         Select::make('relationship_type')
                             ->label('Parentesco')
-                            ->options([
-                                'Padre' => 'Padre',
-                                'Madre' => 'Madre',
-                                'Tutor Legal' => 'Tutor Legal',
-                                'Abuelo/a' => 'Abuelo/a',
-                                'Tío/a' => 'Tío/a',
-                                'Otro' => 'Otro',
-                            ])
+                            ->options(GuardianRelationship::class)
                             ->required(),
                         Checkbox::make('is_primary_guardian')
                             ->label('Es Tutor Principal'),

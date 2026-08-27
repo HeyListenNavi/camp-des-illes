@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RegistrationStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,13 @@ class CamperRegistration extends Model
         'camp_event_id',
         'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => RegistrationStatus::class,
+        ];
+    }
 
     protected static function booted(): void
     {

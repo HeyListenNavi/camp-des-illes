@@ -1,3 +1,6 @@
+@use('App\Enums\GuardianRelationship')
+@use('App\Enums\Gender')
+
 <div class="max-w-5xl mx-auto px-4 py-8">
     @if ($submitted)
         <!-- Pantalla de Éxito / Confirmación -->
@@ -112,13 +115,9 @@
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-900">Parentesco *</label>
                                     <select wire:model.defer="guardians.{{ $index }}.relationship_type" class="mt-1 w-full rounded-lg border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <option value="father">Padre</option>
-                                        <option value="mother">Madre</option>
-                                        <option value="stepfather">Padrastro</option>
-                                        <option value="stepmother">Madrastra</option>
-                                        <option value="legal_guardian">Tutor Legal</option>
-                                        <option value="emergency_contact">Contacto Emergencia</option>
-                                        <option value="other">Otro</option>
+                                        @foreach (GuardianRelationship::cases() as $rel)
+                                            <option value="{{ $rel->value }}">{{ $rel->getLabel() }}</option>
+                                        @endforeach
                                     </select>
                                     @error("guardians.{$index}.relationship_type") <span class="text-xs text-red-600 font-semibold">{{ $message }}</span> @enderror
                                 </div>
@@ -190,9 +189,9 @@
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-900">Género *</label>
                                     <select wire:model.defer="campers.{{ $index }}.gender" class="mt-1 w-full rounded-lg border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <option value="male">Masculino</option>
-                                        <option value="female">Femenino</option>
-                                        <option value="other">Otro</option>
+                                        @foreach (Gender::cases() as $gender)
+                                            <option value="{{ $gender->value }}">{{ $gender->getLabel() }}</option>
+                                        @endforeach
                                     </select>
                                     @error("campers.{$index}.gender") <span class="text-xs text-red-600 font-semibold">{{ $message }}</span> @enderror
                                 </div>

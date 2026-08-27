@@ -15,15 +15,7 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->integer('expected_attendees');
-            $table->enum('status', [
-                'inquiry_received',
-                'application_sent',
-                'waiting_for_documents',
-                'deposit_pending',
-                'confirmed',
-                'completed',
-                'cancelled'
-            ])->default('inquiry_received');
+            $table->string('status')->default('inquiry_received');
             $table->text('operational_notes')->nullable();
             $table->timestamps();
         });

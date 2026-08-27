@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GroupEventStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,10 +24,14 @@ class GroupEvent extends Model
         'operational_notes',
     ];
 
-    protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'status' => GroupEventStatus::class,
+            'start_date' => 'date',
+            'end_date' => 'date',
+        ];
+    }
 
     protected static function booted(): void
     {

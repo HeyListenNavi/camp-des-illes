@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Campers\RelationManagers;
 
+use App\Enums\RegistrationStatus;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -36,13 +37,8 @@ class RegistrationsRelationManager extends RelationManager
 
                     Select::make('status')
                         ->label('Estatus de Inscripción')
-                        ->options([
-                            'pending' => 'Pendiente',
-                            'confirmed' => 'Confirmada',
-                            'cancelled' => 'Cancelada',
-                            'waitlist' => 'Lista de Espera',
-                        ])
-                        ->default('pending')
+                        ->options(RegistrationStatus::class)
+                        ->default(RegistrationStatus::Pending)
                         ->required(),
                 ]),
             ]);
@@ -60,21 +56,7 @@ class RegistrationsRelationManager extends RelationManager
 
                 TextColumn::make('status')
                     ->label('Estatus')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'confirmed' => 'success',
-                        'pending' => 'warning',
-                        'cancelled' => 'danger',
-                        'waitlist' => 'info',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'confirmed' => 'Confirmada',
-                        'pending' => 'Pendiente',
-                        'cancelled' => 'Cancelada',
-                        'waitlist' => 'Lista de Espera',
-                        default => $state,
-                    }),
+                    ->badge(),
 
                 TextColumn::make('created_at')
                     ->label('Fecha de Registro')

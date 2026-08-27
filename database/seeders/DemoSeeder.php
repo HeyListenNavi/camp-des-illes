@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Gender;
+use App\Enums\RegistrationStatus;
 use App\Models\Camper;
 use App\Models\CamperConsent;
 use App\Models\CamperMedical;
@@ -42,7 +44,7 @@ class DemoSeeder extends Seeder
                 'first_name' => 'Sofía',
                 'last_name' => 'García',
                 'date_of_birth' => $dob,
-                'gender' => 'female',
+                'gender' => Gender::Female,
                 'health_card_number' => 'NSS-987654321',
             ]);
         }
@@ -58,11 +60,10 @@ class DemoSeeder extends Seeder
         $reg = CamperRegistration::firstOrCreate(
             [
                 'camper_id' => $camper->id,
-                'session_year' => '2026',
             ],
             [
                 'token' => 'demo-token-12345',
-                'status' => 'confirmed',
+                'status' => RegistrationStatus::Confirmed,
             ]
         );
 

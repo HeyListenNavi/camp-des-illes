@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('token')->unique();
             $table->foreignId('camp_event_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('camper_id')->constrained('campers')->restrictOnDelete();
-            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+            $table->string('status')->default('pending');
             $table->timestamps();
 
             $table->unique(['camper_id', 'session_year']);
