@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\GroupEvents\Schemas;
 
 use App\Enums\GroupEventStatus;
+use App\Filament\Forms\Components\QrCodeCard;
 use App\Models\GroupEvent;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -74,7 +75,7 @@ class GroupEventForm
                             ->columnSpan(1),
 
                         Section::make('Event Schedule & Requirements')
-                            ->description('Dates, capacity, and operational logistics.')
+                            ->description('Dates, capacity, operational logistics, and scannable QR portal key.')
                             ->icon(Heroicon::OutlinedCalendarDays)
                             ->schema([
                                 Select::make('status')
@@ -112,6 +113,13 @@ class GroupEventForm
                                     ->autosize()
                                     ->columnSpanFull(),
 
+                                QrCodeCard::make('public_link_qr')
+                                    ->label('Group Portal QR Code')
+                                    ->qrSize(200)
+                                    ->url(fn (?GroupEvent $record): ?string => $record?->token ? url("/public/group-request?token={$record->token}") : null)
+                                    ->caption('Scan to open group retreat portal')
+                                    ->columnSpanFull(),
+
                                 TextInput::make('public_link')
                                     ->label('Public Access Link')
                                     ->prefixIcon(Heroicon::OutlinedLink)
@@ -127,7 +135,7 @@ class GroupEventForm
                                             ->url(fn (?string $state): ?string => $state, shouldOpenInNewTab: true)
                                             ->visible(fn (?string $state): bool => ! empty($state))
                                     )
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull(), 
                             ])
                             ->columns(2)
                             ->columnSpan(1),

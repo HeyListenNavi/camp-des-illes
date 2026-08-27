@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CamperRegistrations\Schemas;
 
 use App\Enums\RegistrationStatus;
+use App\Filament\Forms\Components\QrCodeCard;
 use App\Models\Camper;
 use App\Models\CamperRegistration;
 use Filament\Actions\Action;
@@ -49,7 +50,7 @@ class CamperRegistrationForm
                             ->columnSpan(1),
 
                         Section::make('Status & Public Links')
-                            ->description('Manage registration status and self-service portal links.')
+                            ->description('Manage registration status, portal links, and scannable QR codes.')
                             ->icon(Heroicon::OutlinedClipboardDocumentCheck)
                             ->schema([
                                 Select::make('status')
@@ -57,6 +58,24 @@ class CamperRegistrationForm
                                     ->options(RegistrationStatus::class)
                                     ->native(false)
                                     ->required()
+                                    ->columnSpanFull(),
+                                    
+                                Grid::make(['default' => 1, 'sm' => 2])
+                                    ->schema([
+                                        QrCodeCard::make('public_link_qr')
+                                            ->label('Registration Portal QR Code')
+                                            ->url(fn (?CamperRegistration $record): ?string => $record?->token ? url("/public/camper-register?token={$record->token}") : null)
+                                            ->caption('Scan to access registration')
+                                            ->qrSize(200)
+                                            ->columnSpan(1),
+
+                                        QrCodeCard::make('public_medical_qr')
+                                            ->label('Medical Consent QR Code')
+                                            ->url(fn (?CamperRegistration $record): ?string => $record?->token ? url("/public/medical/{$record->token}") : null)
+                                            ->caption('Scan to update medical consent')
+                                            ->qrSize(200)
+                                            ->columnSpan(1),
+                                    ])
                                     ->columnSpanFull(),
 
                                 Grid::make(['default' => 1, 'sm' => 2])
