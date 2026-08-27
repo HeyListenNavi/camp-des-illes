@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "wsl.exe",
+            "args": [
+                "/usr/bin/php",
+                "/home/veronica/projects/camp-des-illes/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
