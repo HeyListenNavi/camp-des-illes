@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CamperRegistrations\Tables;
 
 use App\Enums\RegistrationStatus;
 use App\Models\CamperRegistration;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -46,13 +47,6 @@ class CamperRegistrationsTable
                     ->badge()
                     ->sortable(),
 
-                TextColumn::make('token')
-                    ->label('Tracking Token')
-                    ->searchable()
-                    ->copyable()
-                    ->fontFamily('mono')
-                    ->toggleable(isToggledHiddenByDefault: true),
-
                 TextColumn::make('created_at')
                     ->label('Registration Date')
                     ->dateTime('M j, Y g:i A')
@@ -74,6 +68,18 @@ class CamperRegistrationsTable
                 ActionGroup::make([
                     ViewAction::make()->modalWidth('4xl'),
                     EditAction::make()->modalWidth('4xl'),
+                    Action::make('openPortal')
+                        ->label('Open Portal Link')
+                        ->icon('heroicon-m-arrow-top-right-on-square')
+                        ->color('info')
+                        ->url(fn (CamperRegistration $record): ?string => $record->token ? url("/public/camper-register?token={$record->token}") : null, shouldOpenInNewTab: true)
+                        ->visible(fn (CamperRegistration $record): bool => ! empty($record->token)),
+                    Action::make('openMedicalPortal')
+                        ->label('Open Medical & Consent Form')
+                        ->icon('heroicon-m-heart')
+                        ->color('warning')
+                        ->url(fn (CamperRegistration $record): ?string => $record->token ? url("/public/medical/{$record->token}") : null, shouldOpenInNewTab: true)
+                        ->visible(fn (CamperRegistration $record): bool => ! empty($record->token)),
                     DeleteAction::make(),
                 ]),
             ])

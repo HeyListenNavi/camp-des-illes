@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Campers\Tables;
 
 use App\Enums\Gender;
 use App\Models\Camper;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -95,6 +96,16 @@ class CampersTable
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make(),
+                    Action::make('openMedicalPortal')
+                        ->label('Open Medical & Consent Form')
+                        ->icon('heroicon-m-heart')
+                        ->color('warning')
+                        ->url(function (Camper $record): ?string {
+                            $latestReg = $record->registrations()->latest()->first();
+
+                            return $latestReg?->token ? url("/public/medical/{$latestReg->token}") : null;
+                        }, shouldOpenInNewTab: true)
+                        ->visible(fn (Camper $record): bool => (bool) $record->registrations()->latest()->first()?->token),
                     DeleteAction::make(),
                 ]),
             ])

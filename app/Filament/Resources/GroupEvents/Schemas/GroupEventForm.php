@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\GroupEvents\Schemas;
 
 use App\Enums\GroupEventStatus;
+use App\Models\GroupEvent;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -110,13 +112,21 @@ class GroupEventForm
                                     ->autosize()
                                     ->columnSpanFull(),
 
-                                TextInput::make('token')
-                                    ->label('Tracking Token')
-                                    ->prefixIcon(Heroicon::OutlinedKey)
-                                    ->placeholder('Auto-generated code')
+                                TextInput::make('public_link')
+                                    ->label('Public Access Link')
+                                    ->prefixIcon(Heroicon::OutlinedLink)
+                                    ->formatStateUsing(fn (?GroupEvent $record): ?string => $record?->token ? url("/public/group-request?token={$record->token}") : null)
+                                    ->placeholder('Link generated automatically upon saving')
                                     ->disabled()
                                     ->dehydrated(false)
                                     ->copyable()
+                                    ->suffixAction(
+                                        Action::make('openPublicLink')
+                                            ->icon('heroicon-m-arrow-top-right-on-square')
+                                            ->tooltip('Open public portal link in new tab')
+                                            ->url(fn (?string $state): ?string => $state, shouldOpenInNewTab: true)
+                                            ->visible(fn (?string $state): bool => ! empty($state))
+                                    )
                                     ->columnSpanFull(),
                             ])
                             ->columns(2)

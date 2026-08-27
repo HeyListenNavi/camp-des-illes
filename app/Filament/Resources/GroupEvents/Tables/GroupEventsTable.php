@@ -4,6 +4,7 @@ namespace App\Filament\Resources\GroupEvents\Tables;
 
 use App\Enums\GroupEventStatus;
 use App\Models\GroupEvent;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -104,6 +105,12 @@ class GroupEventsTable
                 ActionGroup::make([
                     ViewAction::make()->modalWidth('4xl'),
                     EditAction::make()->modalWidth('4xl'),
+                    Action::make('openPortal')
+                        ->label('Open Portal Link')
+                        ->icon('heroicon-m-arrow-top-right-on-square')
+                        ->color('info')
+                        ->url(fn (GroupEvent $record): ?string => $record->token ? url("/public/group-request?token={$record->token}") : null, shouldOpenInNewTab: true)
+                        ->visible(fn (GroupEvent $record): bool => ! empty($record->token)),
                     DeleteAction::make(),
                 ]),
             ])
