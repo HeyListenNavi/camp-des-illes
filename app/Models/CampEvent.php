@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CampEvent extends Model
 {
@@ -25,5 +26,10 @@ class CampEvent extends Model
             'end_date' => 'date',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(CamperRegistration::class);
     }
 }

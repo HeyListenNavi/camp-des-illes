@@ -7,7 +7,6 @@ use App\Models\Camper;
 use App\Models\CamperConsent;
 use App\Models\CamperMedical;
 use App\Models\CamperRegistration;
-use App\Models\FormSubmission;
 use App\Models\Guardian;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -96,49 +95,10 @@ class CamperRegistrationForm extends Component
         }
     }
 
-    // ─── Validation ─────────────────────────────────────────────────────────────
-
-    protected function rules(): array
-    {
-        return [
-            // Guardians
-            'guardians'                        => 'required|array|min:1',
-            'guardians.*.first_name'           => 'required|string|max:255',
-            'guardians.*.last_name'            => 'required|string|max:255',
-            'guardians.*.phone'                => 'required|string|max:50',
-            'guardians.*.email'                => 'nullable|email|max:255',
-            'guardians.*.relationship_type'    => 'required|in:father,mother,stepfather,stepmother,legal_guardian,emergency_contact,other',
-            'guardians.*.is_primary_guardian'  => 'boolean',
-            'guardians.*.is_emergency_contact' => 'boolean',
-            'guardians.*.has_custody'          => 'boolean',
-
-            // Campers
-            'campers'                          => 'required|array|min:1',
-            'campers.*.first_name'             => 'required|string|max:255',
-            'campers.*.last_name'              => 'required|string|max:255',
-            'campers.*.gender'                 => 'required|in:male,female,other',
-            'campers.*.date_of_birth'          => 'required|date',
-            'campers.*.medical_permission'     => 'accepted',
-        ];
-    }
-
-    protected array $messages = [
-        'guardians.*.first_name.required'       => 'El nombre del tutor es obligatorio.',
-        'guardians.*.last_name.required'        => 'El apellido del tutor es obligatorio.',
-        'guardians.*.phone.required'            => 'El teléfono del tutor es obligatorio.',
-        'guardians.*.email.email'               => 'El correo del tutor no tiene un formato válido.',
-        'campers.*.first_name.required'         => 'El nombre del acampante es obligatorio.',
-        'campers.*.last_name.required'          => 'El apellido del acampante es obligatorio.',
-        'campers.*.date_of_birth.required'      => 'La fecha de nacimiento es obligatoria.',
-        'campers.*.medical_permission.accepted' => 'Debe aceptar la autorización médica de emergencia para cada acampante.',
-    ];
-
     // ─── Submit ─────────────────────────────────────────────────────────────────
 
     public function submit(): void
     {
-        $this->validate();
-
         if (! $this->activeEvent) {
             session()->flash('error', 'No hay un evento de campamento activo configurado.');
             return;
@@ -148,7 +108,7 @@ class CamperRegistrationForm extends Component
 
         DB::transaction(function () use (&$tokens) {
 
-            // 1. Crear o actualizar Tutores (Guardians) y agruparlos con el CampEvent activo
+            // 1. Crear o actualizar Tutores (Guardians)
             $guardianModels = [];
             foreach ($this->guardians as $gData) {
                 if (! empty($gData['email'])) {
@@ -177,11 +137,6 @@ class CamperRegistrationForm extends Component
                     ]);
                 }
 
-                // Relación N:M con el evento activo
-                if (method_exists($guardian, 'campEvents')) {
-                    $guardian->campEvents()->syncWithoutDetaching([$this->activeEvent->id]);
-                }
-
                 $guardianModels[] = [
                     'model'                => $guardian,
                     'relationship_type'    => $gData['relationship_type'],
@@ -192,11 +147,13 @@ class CamperRegistrationForm extends Component
 
             // 2. Procesar acampantes (Campers)
             foreach ($this->campers as $item) {
-                $dob = \Carbon\Carbon::parse($item['date_of_birth'])->toDateString();
+                $dob = ! empty($item['date_of_birth']) 
+                    ? \Carbon\Carbon::parse($item['date_of_birth'])->toDateString() 
+                    : null;
 
                 $camper = Camper::where('first_name', trim($item['first_name']))
                     ->where('last_name', trim($item['last_name']))
-                    ->whereDate('date_of_birth', $dob)
+                    ->when($dob, fn ($query) => $query->whereDate('date_of_birth', $dob))
                     ->first();
 
                 if (! $camper) {
@@ -204,15 +161,11 @@ class CamperRegistrationForm extends Component
                         'first_name'         => trim($item['first_name']),
                         'last_name'          => trim($item['last_name']),
                         'date_of_birth'      => $dob,
-                        'gender'             => $item['gender'],
+                        'gender'             => $item['gender'] ?? 'male',
                         'address'            => $item['address'] ?? null,
                         'custody_details'    => $item['custody_details'] ?? null,
                         'health_card_number' => $item['health_card_number'] ?? null,
                     ]);
-                }
-
-                if (method_exists($camper, 'campEvents')) {
-                    $camper->campEvents()->syncWithoutDetaching([$this->activeEvent->id]);
                 }
 
                 // 3. Vincular tutores con acampante
@@ -237,7 +190,7 @@ class CamperRegistrationForm extends Component
                     ]
                 );
 
-                // 5. Registro asociado a camp_event_id
+                // 5. REGISTRO OFICIAL DE INSCRIPCIÓN (Aquí se une el Camper con el CampEvent)
                 $registration = CamperRegistration::firstOrCreate(
                     [
                         'camper_id'     => $camper->id,
@@ -260,33 +213,6 @@ class CamperRegistrationForm extends Component
                         'signed_at'          => now(),
                     ]
                 );
-
-                // 7. Auditoría
-                FormSubmission::create([
-                    'form_type'              => 'registration',
-                    'camper_registration_id' => $registration->id,
-                    'processed_at'           => now(),
-                    'ip_address'             => request()->ip(),
-                    'payload'                => [
-                        'guardians' => collect($guardianModels)->map(fn ($gm) => [
-                            'first_name' => $gm['model']->first_name,
-                            'last_name'  => $gm['model']->last_name,
-                            'phone'      => $gm['model']->phone,
-                            'email'      => $gm['model']->email,
-                        ])->toArray(),
-                        'camper' => [
-                            'first_name' => $item['first_name'],
-                            'last_name'  => $item['last_name'],
-                            'dob'        => $dob,
-                            'gender'     => $item['gender'],
-                        ],
-                        'camp_event' => [
-                            'id'   => $this->activeEvent->id,
-                            'name' => $this->activeEvent->name,
-                            'year' => $this->activeEvent->year,
-                        ],
-                    ],
-                ]);
 
                 $tokens[] = [
                     'name'  => $item['first_name'] . ' ' . $item['last_name'],

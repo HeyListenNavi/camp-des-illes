@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('camper_registrations', function (Blueprint $table) {
             $table->id();
             $table->string('token')->unique();
+            $table->foreignId('camp_event_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('camper_id')->constrained('campers')->restrictOnDelete();
-            $table->foreignId('registration_session_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->timestamps();
 

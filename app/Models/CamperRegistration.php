@@ -16,7 +16,7 @@ class CamperRegistration extends Model
     protected $fillable = [
         'token',
         'camper_id',
-        'registration_session_id',
+        'camp_event_id',
         'status',
     ];
 
@@ -32,6 +32,11 @@ class CamperRegistration extends Model
     public function camper(): BelongsTo
     {
         return $this->belongsTo(Camper::class);
+    }
+
+    public function campEvent(): BelongsTo
+    {
+        return $this->belongsTo(CampEvent::class);
     }
 
     public function registrationSession(): BelongsTo

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Camper extends Model
@@ -25,15 +26,23 @@ class Camper extends Model
         'access_token_expires_at',
     ];
 
-    protected $casts = [
-        'date_of_birth' => 'date',
-        'access_token_expires_at' => 'datetime',
-    ];
-
-    public function registrationSessions(): BelongsToMany
+    protected function casts(): array
     {
-        return $this->belongsToMany(RegistrationSession::class, 'camper_registration_session')
-            ->withTimestamps();
+        return [
+            'date_of_birth' => 'date',
+            'access_token_expires_at' => 'datetime',
+        ];
+    }
+
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(CamperRegistration::class);
+    }
+
+    // Obtener todos los eventos en los que el acampante ha participado a través de sus inscripciones
+    public function campEvents(): HasManyThrough
+    {
+        return $this->hasManyThrough(CampEvent::class, CamperRegistration::class, 'camper_id', 'id', 'id', 'camp_event_id');
     }
 
     public function guardians(): BelongsToMany
@@ -43,14 +52,15 @@ class Camper extends Model
             ->withTimestamps();
     }
 
+    public function registrationSessions(): BelongsToMany
+    {
+        return $this->belongsToMany(RegistrationSession::class, 'camper_registration_session')
+            ->withTimestamps();
+    }
+
     public function medical(): HasOne
     {
         return $this->hasOne(CamperMedical::class);
-    }
-
-    public function registrations(): HasMany
-    {
-        return $this->hasMany(CamperRegistration::class);
     }
 
     public function documents(): MorphMany

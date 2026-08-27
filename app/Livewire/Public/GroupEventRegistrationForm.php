@@ -1,19 +1,19 @@
-<?php
+<?php 
 
 namespace App\Livewire\Public;
 
-use App\Models\Document;
-use App\Models\EventServiceRequest;
-use App\Models\FormSubmission;
+use App\Models\Activity;
 use App\Models\GroupEvent;
 use App\Models\GuestGroup;
+use App\Models\MealOption;
+use App\Models\RoomType;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use Livewire\WithFileUploads; // 1. Importar la trait de Livewire
+use Livewire\WithFileUploads;
 
 class GroupEventRegistrationForm extends Component
 {
-    use WithFileUploads; // 2. Usar la trait
+    use WithFileUploads;
 
     // Guest Group fields
     public string $group_name = '';
@@ -33,35 +33,13 @@ class GroupEventRegistrationForm extends Component
     public $insurance_file = null;
     public $contract_file = null;
 
-    // Dynamic Service Requests
-    public array $services = [];
+    // Quantities mapped by ID: [id => quantity]
+    public array $selected_meals = [];
+    public array $selected_rooms = [];
+    public array $selected_activities = [];
 
     public bool $submitted = false;
     public ?string $event_token = null;
-
-    public function mount(): void
-    {
-        $this->services = [
-            ['service_category' => 'lodging', 'service_name' => 'Hospedaje Cabañas', 'quantity' => 20, 'notes' => ''],
-            ['service_category' => 'meal', 'service_name' => 'Servicio de Alimentación Completa', 'quantity' => 20, 'notes' => ''],
-        ];
-    }
-
-    public function addService(): void
-    {
-        $this->services[] = [
-            'service_category' => 'activity',
-            'service_name' => '',
-            'quantity' => 1,
-            'notes' => '',
-        ];
-    }
-
-    public function removeService(int $index): void
-    {
-        unset($this->services[$index]);
-        $this->services = array_values($this->services);
-    }
 
     protected function rules(): array
     {
@@ -73,12 +51,19 @@ class GroupEventRegistrationForm extends Component
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'expected_attendees' => 'required|integer|min:1',
-            'insurance_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // Máx 10MB
-            'contract_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',      // Máx 10MB
-            'services.*.service_category' => 'required|in:meal,lodging,activity',
-            'services.*.service_name' => 'required|string|max:255',
-            'services.*.quantity' => 'required|integer|min:1',
+            'insurance_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'contract_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'selected_meals.*' => 'nullable|integer|min:0',
+            'selected_rooms.*' => 'nullable|integer|min:0',
+            'selected_activities.*' => 'nullable|integer|min:0',
         ];
+    }
+
+    public function mount(): void
+    {
+        $this->selected_meals = [];
+        $this->selected_rooms = [];
+        $this->selected_activities = [];
     }
 
     public function submit(): void
@@ -108,7 +93,7 @@ class GroupEventRegistrationForm extends Component
                 'status' => 'inquiry_received',
             ]);
 
-            // 3. Subir y guardar Documentos polimórficos vinculados a GroupEvent
+            // 3. Documentos
             if ($this->insurance_file) {
                 $path = $this->insurance_file->store('documents/insurance', 'public');
                 $event->documents()->create([
@@ -129,43 +114,54 @@ class GroupEventRegistrationForm extends Component
                 ]);
             }
 
-            // 4. Crear solicitudes de servicios asociados
-            foreach ($this->services as $service) {
-                if (!empty($service['service_name'])) {
-                    EventServiceRequest::create([
-                        'group_event_id' => $event->id,
-                        'service_category' => $service['service_category'],
-                        'service_name' => $service['service_name'],
-                        'quantity' => $service['quantity'] ?? 1,
-                        'notes' => $service['notes'] ?? null,
-                    ]);
+            // 4. Guardar solicitudes de servicio directamente en BD
+            $servicesToInsert = [];
+
+            // Meals
+            $mealModels = MealOption::whereIn('id', array_keys($this->selected_meals))->get()->keyBy('id');
+            foreach ($this->selected_meals as $id => $quantity) {
+                if ((int)$quantity > 0 && isset($mealModels[$id])) {
+                    $servicesToInsert[] = [
+                        'service_category' => 'meal',
+                        'service_name' => $mealModels[$id]->name,
+                        'serviceable_id' => $id,
+                        'serviceable_type' => MealOption::class,
+                        'quantity' => (int)$quantity,
+                    ];
                 }
             }
 
-            // 5. Registro de Auditoría de Ingesta (FormSubmission)
-            FormSubmission::create([
-                'form_type' => 'registration',
-                'processed_at' => now(),
-                'ip_address' => request()->ip(),
-                'payload' => [
-                    'group' => [
-                        'name' => $this->group_name,
-                        'organization' => $this->organization_name,
-                        'contact' => $this->primary_contact_name,
-                        'email' => $this->email,
-                    ],
-                    'event' => [
-                        'start_date' => $this->start_date,
-                        'end_date' => $this->end_date,
-                        'attendees' => $this->expected_attendees,
-                    ],
-                    'documents_uploaded' => array_filter([
-                        'insurance' => (bool) $this->insurance_file,
-                        'contract' => (bool) $this->contract_file,
-                    ]),
-                    'services_count' => count($this->services),
-                ],
-            ]);
+            // Rooms
+            $roomModels = RoomType::whereIn('id', array_keys($this->selected_rooms))->get()->keyBy('id');
+            foreach ($this->selected_rooms as $id => $quantity) {
+                if ((int)$quantity > 0 && isset($roomModels[$id])) {
+                    $servicesToInsert[] = [
+                        'service_category' => 'lodging',
+                        'service_name' => $roomModels[$id]->name,
+                        'serviceable_id' => $id,
+                        'serviceable_type' => RoomType::class,
+                        'quantity' => (int)$quantity,
+                    ];
+                }
+            }
+
+            // Activities
+            $activityModels = Activity::whereIn('id', array_keys($this->selected_activities))->get()->keyBy('id');
+            foreach ($this->selected_activities as $id => $quantity) {
+                if ((int)$quantity > 0 && isset($activityModels[$id])) {
+                    $servicesToInsert[] = [
+                        'service_category' => 'activity',
+                        'service_name' => $activityModels[$id]->name,
+                        'serviceable_id' => $id,
+                        'serviceable_type' => Activity::class,
+                        'quantity' => (int)$quantity,
+                    ];
+                }
+            }
+
+            foreach ($servicesToInsert as $service) {
+                $event->serviceRequests()->create($service);
+            }
 
             $this->event_token = $event->token;
             $this->submitted = true;
@@ -174,7 +170,10 @@ class GroupEventRegistrationForm extends Component
 
     public function render()
     {
-        return view('livewire.public.group-event-registration-form')
-            ->layout('layouts.public', ['title' => 'Solicitud de Grupo']);
+        return view('livewire.public.group-event-registration-form', [
+            'mealOptions' => MealOption::where('is_active', true)->get(),
+            'roomTypes'   => RoomType::where('is_active', true)->get(),
+            'activities'  => Activity::where('is_active', true)->get(),
+        ])->layout('layouts.public', ['title' => 'Solicitud de Grupo']);
     }
 }
