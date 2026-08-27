@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Guardians\Schemas;
 
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -16,44 +16,69 @@ class GuardianForm
     {
         return $schema
             ->components([
-                Tabs::make('GuardianTabs')
-                    ->tabs([
-                        Tab::make('Información Personal')
-                            ->icon(Heroicon::OutlinedIdentification)
+                Grid::make(['default' => 1, 'lg' => 3])
+                    ->schema([
+                        Grid::make(1)
                             ->schema([
-                                Grid::make(2)
+                                Section::make('Personal Information')
+                                    ->description('Guardian contact information and identity.')
+                                    ->icon(Heroicon::OutlinedIdentification)
                                     ->schema([
-                                        TextInput::make('first_name')
-                                            ->label('Nombre(s)')
-                                            ->required()
-                                            ->maxLength(255),
+                                        Grid::make(2)->schema([
+                                            TextInput::make('first_name')
+                                                ->label('First Name')
+                                                ->prefixIcon(Heroicon::OutlinedUser)
+                                                ->required()
+                                                ->maxLength(255),
 
-                                        TextInput::make('last_name')
-                                            ->label('Apellidos')
-                                            ->required()
-                                            ->maxLength(255),
+                                            TextInput::make('last_name')
+                                                ->label('Last Name')
+                                                ->prefixIcon(Heroicon::OutlinedUser)
+                                                ->required()
+                                                ->maxLength(255),
 
-                                        TextInput::make('phone')
-                                            ->label('Teléfono')
-                                            ->tel()
-                                            ->required()
-                                            ->maxLength(50),
+                                            TextInput::make('phone')
+                                                ->label('Phone Number')
+                                                ->prefixIcon(Heroicon::OutlinedPhone)
+                                                ->tel()
+                                                ->required()
+                                                ->maxLength(50),
 
-                                        TextInput::make('email')
-                                            ->label('Correo electrónico')
-                                            ->email()
-                                            ->maxLength(255),
+                                            TextInput::make('email')
+                                                ->label('Email Address')
+                                                ->prefixIcon(Heroicon::OutlinedEnvelope)
+                                                ->email()
+                                                ->maxLength(255),
+                                        ]),
                                     ]),
-                            ]),
 
-                        Tab::make('Dirección y Custodia')
-                            ->icon(Heroicon::OutlinedHome)
+                                Section::make('Residential Address')
+                                    ->description('Home and mailing address.')
+                                    ->icon(Heroicon::OutlinedHome)
+                                    ->schema([
+                                        Textarea::make('address')
+                                            ->label('Full Address')
+                                            ->placeholder('e.g. 123 Camp Road, Suite 400, Quebec')
+                                            ->rows(3)
+                                            ->autosize()
+                                            ->columnSpanFull(),
+                                    ]),
+                            ])
+                            ->columnSpan(['default' => 1, 'lg' => 2]),
+
+                        Grid::make(1)
                             ->schema([
-                                Textarea::make('address')
-                                    ->label('Dirección completa')
-                                    ->rows(3)
-                                    ->columnSpanFull(),
-                            ]),
+                                Section::make('Legal & Custody Status')
+                                    ->description('Custody rights and access authorization')
+                                    ->icon(Heroicon::OutlinedShieldCheck)
+                                    ->schema([
+                                        Toggle::make('has_custody')
+                                            ->label('Legal Custody Rights')
+                                            ->helperText('Indicates whether this guardian holds legal custody rights for their registered campers.')
+                                            ->default(true),
+                                    ]),
+                            ])
+                            ->columnSpan(['default' => 1, 'lg' => 1]),
                     ])
                     ->columnSpanFull(),
             ]);

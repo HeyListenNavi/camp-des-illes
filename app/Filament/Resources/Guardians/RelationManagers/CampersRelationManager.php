@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Guardians\RelationManagers;
 
 use App\Enums\Gender;
 use App\Enums\GuardianRelationship;
+use App\Models\Camper;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -12,13 +14,15 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -27,109 +31,153 @@ class CampersRelationManager extends RelationManager
 {
     protected static string $relationship = 'campers';
 
-    protected static ?string $title = 'Acampantes a Cargo';
+    protected static ?string $title = 'Linked Campers';
 
-    protected static ?string $modelLabel = 'acampante';
+    protected static ?string $modelLabel = 'camper';
 
-    protected static ?string $pluralModelLabel = 'acampantes';
+    protected static ?string $pluralModelLabel = 'campers';
+
+    protected static \BackedEnum|string|null $icon = Heroicon::OutlinedUserGroup;
 
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Grid::make(2)->schema([
-                    TextInput::make('first_name')
-                        ->label('Nombre(s)')
-                        ->required()
-                        ->maxLength(255),
+                Section::make('Camper Profile')
+                    ->description('Personal details and identity of the child/camper.')
+                    ->icon(Heroicon::OutlinedUser)
+                    ->schema([
+                        Grid::make(2)->schema([
+                            TextInput::make('first_name')
+                                ->label('First Name')
+                                ->prefixIcon(Heroicon::OutlinedUser)
+                                ->required()
+                                ->maxLength(255),
 
-                    TextInput::make('last_name')
-                        ->label('Apellido(s)')
-                        ->required()
-                        ->maxLength(255),
+                            TextInput::make('last_name')
+                                ->label('Last Name')
+                                ->prefixIcon(Heroicon::OutlinedUser)
+                                ->required()
+                                ->maxLength(255),
 
-                    Select::make('gender')
-                        ->label('Género')
-                        ->options(Gender::class)
-                        ->required(),
+                            Select::make('gender')
+                                ->label('Gender')
+                                ->options(Gender::class)
+                                ->native(false)
+                                ->required(),
 
-                    DatePicker::make('date_of_birth')
-                        ->label('Fecha de Nacimiento')
-                        ->required(),
-                ]),
+                            DatePicker::make('date_of_birth')
+                                ->label('Date of Birth')
+                                ->prefixIcon(Heroicon::OutlinedCalendar)
+                                ->native(false)
+                                ->required(),
+                        ]),
+                    ])
+                    ->columnSpanFull(),
 
-                Grid::make(3)->schema([
-                    Select::make('relationship_type')
-                        ->label('Parentesco')
-                        ->options(GuardianRelationship::class)
-                        ->required(),
+                Section::make('Relationship & Role')
+                    ->description('Specify guardian relationship and emergency permissions for this camper.')
+                    ->icon(Heroicon::OutlinedShieldCheck)
+                    ->schema([
+                        Grid::make(3)->schema([
+                            Select::make('relationship_type')
+                                ->label('Relationship Type')
+                                ->options(GuardianRelationship::class)
+                                ->native(false)
+                                ->required(),
 
-                    Checkbox::make('is_primary_guardian')
-                        ->label('Tutor Principal'),
+                            Toggle::make('is_primary_guardian')
+                                ->label('Primary Guardian')
+                                ->inline(false),
 
-                    Checkbox::make('is_emergency_contact')
-                        ->label('Contacto de Emergencia')
-                        ->default(true),
-                ]),
+                            Toggle::make('is_emergency_contact')
+                                ->label('Emergency Contact')
+                                ->inline(false)
+                                ->default(true),
+                        ]),
+                    ])
+                    ->columnSpanFull(),
             ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('first_name')
+            ->recordTitle(fn (Camper $record) => "{$record->first_name} {$record->last_name}")
+            ->heading('Linked Campers')
             ->columns([
-                TextColumn::make('first_name')
-                    ->label('Nombre Completo')
-                    ->formatStateUsing(fn ($record) => "{$record->first_name} {$record->last_name}")
+                TextColumn::make('full_name')
+                    ->label('Camper Full Name')
+                    ->state(fn ($record) => "{$record->first_name} {$record->last_name}")
                     ->searchable(['first_name', 'last_name'])
-                    ->sortable(),
+                    ->sortable()
+                    ->weight('bold'),
 
                 TextColumn::make('pivot.relationship_type')
-                    ->label('Parentesco')
+                    ->label('Relationship')
                     ->badge()
                     ->formatStateUsing(fn ($state) => GuardianRelationship::tryFrom($state)?->getLabel() ?? $state)
                     ->color(fn ($state) => GuardianRelationship::tryFrom($state)?->getColor() ?? 'gray'),
 
                 IconColumn::make('pivot.is_primary_guardian')
-                    ->label('Principal')
+                    ->label('Primary')
                     ->boolean(),
 
                 IconColumn::make('pivot.is_emergency_contact')
-                    ->label('Emergencia')
+                    ->label('Emergency')
                     ->boolean(),
 
                 TextColumn::make('date_of_birth')
-                    ->label('Fecha Nacimiento')
-                    ->date('d/m/Y')
+                    ->label('Date of Birth')
+                    ->date('M j, Y')
                     ->sortable(),
-            ])
-            ->filters([
-                //
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Crear y Asociar Acampante'),
+                    ->label('Add New Camper')
+                    ->modalHeading('Create & Link New Camper')
+                    ->modalWidth('4xl'),
+
                 AttachAction::make()
-                    ->label('Vincular Acampante Existente')
+                    ->label('Link Existing Camper')
+                    ->modalHeading('Link Existing Camper to Guardian')
+                    ->modalWidth('4xl')
                     ->preloadRecordSelect()
                     ->form(fn (AttachAction $action): array => [
-                        $action->getRecordSelect(),
-                        Select::make('relationship_type')
-                            ->label('Parentesco')
-                            ->options(GuardianRelationship::class)
-                            ->required(),
-                        Checkbox::make('is_primary_guardian')
-                            ->label('Es Tutor Principal'),
-                        Checkbox::make('is_emergency_contact')
-                            ->label('Es Contacto de Emergencia')
-                            ->default(true),
+                        Section::make('Select Camper Profile')
+                            ->schema([
+                                $action->getRecordSelect()->native(false),
+                            ])
+                            ->columnSpanFull(),
+
+                        Section::make('Relationship & Role')
+                            ->schema([
+                                Grid::make(3)->schema([
+                                    Select::make('relationship_type')
+                                        ->label('Relationship Type')
+                                        ->options(GuardianRelationship::class)
+                                        ->native(false)
+                                        ->required(),
+
+                                    Toggle::make('is_primary_guardian')
+                                        ->label('Primary Guardian')
+                                        ->inline(false),
+
+                                    Toggle::make('is_emergency_contact')
+                                        ->label('Emergency Contact')
+                                        ->inline(false)
+                                        ->default(true),
+                                ]),
+                            ])
+                            ->columnSpanFull(),
                     ]),
             ])
-            ->recordActions([
-                EditAction::make(),
-                DetachAction::make()->label('Desvincular'),
-                DeleteAction::make(),
+            ->actions([
+                ActionGroup::make([
+                    EditAction::make()->modalWidth('4xl'),
+                    DetachAction::make()->label('Detach Link'),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
