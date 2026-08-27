@@ -3,11 +3,11 @@
 namespace App\Filament\Resources\CampEvents\Schemas;
 
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -17,53 +17,59 @@ class CampEventForm
     {
         return $schema
             ->components([
-                Tabs::make('CampEventTabs')
-                    ->tabs([
-                        Tab::make('Información General')
+                Grid::make(['default' => 1, 'lg' => 2])
+                    ->schema([
+                        Section::make('General Information')
+                            ->description('Event title, session year, and registration availability.')
                             ->icon(Heroicon::OutlinedInformationCircle)
                             ->schema([
                                 TextInput::make('name')
-                                    ->label('Nombre del campamento')
-                                    ->placeholder('Ej. Campamento de Verano')
+                                    ->label('Camp Event Name')
+                                    ->placeholder('e.g. Youth Summer Camp 2026')
+                                    ->prefixIcon(Heroicon::OutlinedSparkles)
                                     ->required()
                                     ->maxLength(255)
                                     ->columnSpanFull(),
 
-                                Grid::make(2)
-                                    ->schema([
-                                        TextInput::make('year')
-                                            ->label('Año')
-                                            ->numeric()
-                                            ->minValue(2000)
-                                            ->maxValue(2100)
-                                            ->required(),
+                                Select::make('year')
+                                    ->label('Session Year')
+                                    ->options(function () {
+                                        $current = (int) date('Y');
+                                        $years = range($current - 5, $current + 5);
 
-                                        Toggle::make('is_active')
-                                            ->label('Campamento activo')
-                                            ->helperText(
-                                                'Determina si este campamento está actualmente disponible.'
-                                            )
-                                            ->default(true),
-                                    ]),
-                            ]),
+                                        return array_combine($years, $years);
+                                    })
+                                    ->default((int) date('Y'))
+                                    ->native(false)
+                                    ->required(),
 
-                        Tab::make('Fechas')
+                                Toggle::make('is_active')
+                                    ->label('Active Camp Session')
+                                    ->helperText(
+                                        'Enable to mark this session active and open for camper registrations.'
+                                    )
+                                    ->default(true),
+                            ])
+                            ->columnSpan(1),
+
+                        Section::make('Schedule & Dates')
+                            ->description('Session start and end date configuration.')
                             ->icon(Heroicon::OutlinedCalendarDays)
                             ->schema([
-                                Grid::make(2)
-                                    ->schema([
-                                        DatePicker::make('start_date')
-                                            ->label('Fecha de inicio')
-                                            ->required()
-                                            ->native(false),
+                                DatePicker::make('start_date')
+                                    ->label('Start Date')
+                                    ->prefixIcon(Heroicon::OutlinedCalendar)
+                                    ->required()
+                                    ->native(false),
 
-                                        DatePicker::make('end_date')
-                                            ->label('Fecha de finalización')
-                                            ->required()
-                                            ->afterOrEqual('start_date')
-                                            ->native(false),
-                                    ]),
-                            ]),
+                                DatePicker::make('end_date')
+                                    ->label('End Date')
+                                    ->prefixIcon(Heroicon::OutlinedCalendar)
+                                    ->required()
+                                    ->afterOrEqual('start_date')
+                                    ->native(false),
+                            ])
+                            ->columnSpan(1),
                     ])
                     ->columnSpanFull(),
             ]);

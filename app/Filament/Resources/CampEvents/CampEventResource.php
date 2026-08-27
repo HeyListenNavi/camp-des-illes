@@ -7,7 +7,6 @@ use App\Filament\Resources\CampEvents\Pages\EditCampEvent;
 use App\Filament\Resources\CampEvents\Pages\ListCampEvents;
 use App\Filament\Resources\CampEvents\RelationManagers\RegistrationsRelationManager;
 use App\Filament\Resources\CampEvents\Schemas\CampEventForm;
-use App\Filament\Resources\CampEvents\Schemas\CampEventInfolist;
 use App\Filament\Resources\CampEvents\Tables\CampEventsTable;
 use App\Models\CampEvent;
 use BackedEnum;
@@ -23,13 +22,13 @@ class CampEventResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
-    protected static ?string $navigationLabel = 'Campamentos';
+    protected static ?string $navigationLabel = 'Camp Events';
 
-    protected static ?string $modelLabel = 'campamento';
+    protected static ?string $modelLabel = 'Camp Event';
 
-    protected static ?string $pluralModelLabel = 'campamentos';
+    protected static ?string $pluralModelLabel = 'Camp Events';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Campamentos';
+    protected static UnitEnum|string|null $navigationGroup = 'Camp Operations';
 
     protected static ?int $navigationSort = 1;
 
@@ -41,11 +40,6 @@ class CampEventResource extends Resource
     public static function table(Table $table): Table
     {
         return CampEventsTable::configure($table);
-    }
-
-    public static function infolist(Schema $schema): Schema
-    {
-        return CampEventInfolist::configure($schema);
     }
 
     public static function getRelations(): array
